@@ -1,0 +1,39 @@
+# backend/.gitignore
+
+# Python runtime files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+# Use venv name if different
+venv/
+.venv/
+
+# Instance folder (contains sensitive config and DB)
+instance/
+
+# Environment variables file
+.env
+.flaskenv
+
+# IDE / Editor specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing artifacts
+.pytest_cache/
+htmlcov/
+.coverage
+*.cover
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# OS generated files
+.DS_Store
+Thumbs.db
