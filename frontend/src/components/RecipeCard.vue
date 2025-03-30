@@ -1,0 +1,122 @@
+<template>
+  <v-card class="mx-auto d-flex flex-column fill-height" flat border>
+    <v-img
+      :src="recipe.image || 'https://via.placeholder.com/300x200/E0E0E0/BDBDBD?text=No+Image'"
+      height="200px"
+      cover
+    ></v-img>
+
+    <div class="d-flex flex-column flex-grow-1 pa-4">
+      <v-card-title class="pa-0 mb-2 text-body-1 font-weight-medium">
+        {{ recipe.name }}
+      </v-card-title>
+
+      <div class="mb-3">
+        <v-chip
+          v-for="(tag, index) in recipe.tags"
+          :key="index"
+          size="small"
+          class="mr-1 mb-1"
+          label
+          :color="getTagColor(tag)"
+          variant="tonal"
+        >
+          {{ tag }}
+        </v-chip>
+      </div>
+
+      <v-card-text class="pa-0 mb-2 text-body-2 text-medium-emphasis flex-grow-1">
+        <strong class="text-body-2 font-weight-medium">主要食材:</strong>
+        {{ recipe.ingredients }}
+      </v-card-text>
+
+      <v-divider class="my-2"></v-divider>
+
+      <v-card-actions class="pa-0">
+        <v-btn
+          :to="`/recipes/${recipe.id}`" 
+          color="grey-darken-1"
+          variant="text"
+          size="small"
+        >
+          查看详情
+          <v-icon right icon="mdi-chevron-right"></v-icon>
+        </v-btn>
+        <v-spacer></v-spacer>
+        <v-btn icon="mdi-pencil" size="small" variant="text" color="grey" @click.stop="editRecipe"></v-btn>
+         <v-btn icon="mdi-delete" size="small" variant="text" color="grey" @click.stop="deleteRecipe"></v-btn>
+      </v-card-actions>
+    </div>
+  </v-card>
+</template>
+
+<script setup>
+import { defineProps } from 'vue';
+// import { useRouter } from 'vue-router'; // Import if needed for actions
+
+const props = defineProps({
+  recipe: {
+    type: Object,
+    required: true,
+    default: () => ({
+        id: 0,
+        name: '无标题',
+        image: '',
+        tags: [],
+        ingredients: '无'
+    })
+  }
+});
+
+// const router = useRouter(); // If using router for actions
+
+// --- Methods ---
+const getTagColor = (tag) => {
+  // Example logic to assign colors to tags
+  if (['简单', '清淡'].includes(tag)) return 'green';
+  if (['中等', '家常菜', '咸鲜', '酸甜', '烘培', '西餐'].includes(tag)) return 'blue';
+  if (['困难', '川菜', '湘菜', '闽菜'].includes(tag)) return 'orange';
+  if (['麻辣', '香辣', '热菜'].includes(tag)) return 'red';
+  return 'grey'; // Default color
+};
+
+const editRecipe = () => {
+  console.log('Edit recipe:', props.recipe.id);
+  // Example: Navigate to edit page
+  // router.push({ name: 'edit-recipe', params: { id: props.recipe.id } });
+};
+
+const deleteRecipe = () => {
+  console.log('Delete recipe:', props.recipe.id);
+  // Example: Show confirmation dialog and call API
+  // if (confirm(`确定要删除菜谱 "${props.recipe.name}" 吗？`)) {
+  //   // Call API to delete
+  // }
+};
+</script>
+
+<style scoped>
+.v-card {
+  transition: box-shadow 0.3s ease-in-out;
+}
+.v-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+.v-card-title {
+  line-height: 1.3; /* Adjust title line height if needed */
+   white-space: normal; /* Allow title to wrap */
+    overflow-wrap: break-word; /* Break long words */
+}
+.v-card-text {
+    line-height: 1.5;
+    /* Clamp text to a certain number of lines if needed */
+    /* display: -webkit-box; */
+    /* -webkit-line-clamp: 2; */
+    /* -webkit-box-orient: vertical; */
+    /* overflow: hidden; */
+}
+
+.v-card-actions .v-btn {
+  text-transform: none; /* Keep button text case */
+}
+</style>
