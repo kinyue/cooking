@@ -27,7 +27,11 @@
 
       <v-card-text class="pa-0 mb-2 text-body-2 text-medium-emphasis flex-grow-1">
         <strong class="text-body-2 font-weight-medium">主要食材:</strong>
-        {{ recipe.ingredients }}
+        <ul>
+          <li v-for="(ingredient, index) in recipe.ingredients" :key="index">
+            {{ ingredient.name }} - {{ ingredient.quantity }}
+          </li>
+        </ul>
       </v-card-text>
 
       <v-divider class="my-2"></v-divider>
