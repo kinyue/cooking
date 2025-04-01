@@ -1,0 +1,24 @@
+/* Styles for RecipeCard.vue */
+.v-card {
+  transition: box-shadow 0.3s ease-in-out;
+}
+.v-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+.v-card-title {
+  line-height: 1.3; /* Adjust title line height if needed */
+   white-space: normal; /* Allow title to wrap */
+    overflow-wrap: break-word; /* Break long words */
+}
+.v-card-text {
+    line-height: 1.5;
+    /* Clamp text to a certain number of lines if needed */
+    /* display: -webkit-box; */
+    /* -webkit-line-clamp: 2; */
+    /* -webkit-box-orient: vertical; */
+    /* overflow: hidden; */
+}
+
+.v-card-actions .v-btn {
+  text-transform: none; /* Keep button text case */
+}

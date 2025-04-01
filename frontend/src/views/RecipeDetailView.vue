@@ -128,5 +128,5 @@ export default {
 </script>
 
 <style scoped>
-/* Add specific styles for RecipeDetailView here */
+@import '@/assets/views/recipe-detail-view.css';
 </style>

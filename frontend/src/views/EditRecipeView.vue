@@ -26,5 +26,5 @@ export default {
 </script>
 
 <style scoped>
-/* Add specific styles for EditRecipeView here */
+@import '@/assets/views/edit-recipe-view.css';
 </style>

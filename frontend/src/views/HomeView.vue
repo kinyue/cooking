@@ -117,8 +117,5 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.v-btn {
-  text-transform: none; /* Keep button text case as defined */
-}
-/* Add any additional specific styles needed for HomeView */
+@import '@/assets/views/home-view.css';
 </style>

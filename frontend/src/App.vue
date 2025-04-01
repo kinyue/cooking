@@ -12,10 +12,5 @@ import AppHeader from '@/components/AppHeader.vue';
 </script>
 
 <style scoped>
-/* Optional: Scoped styles for App.vue */
-.v-main {
-  /* Use the background color from the theme */
-  background-color: rgb(var(--v-theme-background));
-  padding-top: 64px; /* Adjust based on AppHeader height if needed */
-}
+@import '@/assets/app.css';
 </style>

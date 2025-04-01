@@ -26,5 +26,5 @@ export default {
 </script>
 
 <style scoped>
-/* Add specific styles for AddRecipeView here */
+@import '@/assets/views/add-recipe-view.css';
 </style>

@@ -1,0 +1,43 @@
+/* Styles for AppHeader.vue */
+.app-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important; /* Add a subtle border */
+}
+
+.app-logo {
+  cursor: pointer; /* Indicate logo is clickable (if it links home) */
+}
+
+.app-title {
+  flex-grow: 0; /* Prevent title from taking too much space */
+  min-width: 100px; /* Adjust as needed */
+  font-family: 'Roboto', sans-serif; /* Example: Use a specific font */
+}
+
+.header-button {
+  /* Adjusted margin for icon buttons */
+  margin: 0 8px; /* Increased horizontal margin */
+}
+
+.user-menu-button {
+   text-transform: none;
+   font-weight: 500;
+}
+
+/* Adjust user name visibility based on screen size */
+/* d-none d-md-inline handles this now in the template */
+
+/* Ensure avatar text is visible */
+.v-avatar .white--text {
+  color: white !important;
+}
+
+/* Style menu items */
+.v-list-item {
+  min-height: 40px;
+}
+.v-list-item-title {
+  font-size: 0.9rem;
+}
+.v-list-item .v-icon {
+  margin-right: 12px;
+}

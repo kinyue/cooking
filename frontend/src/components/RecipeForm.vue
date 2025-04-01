@@ -246,5 +246,5 @@ const cancelForm = () => {
 </script>
 
 <style scoped>
-/* Add specific styles if needed */
+@import '@/assets/components/recipe-form.css';
 </style>
