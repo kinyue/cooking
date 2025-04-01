@@ -1,3 +1,7 @@
+.ingredient-list {
+  margin-left: 16px; /* Adjust the value as needed */
+}
+
 /* Styles for RecipeCard.vue */
 .v-card {
   transition: box-shadow 0.3s ease-in-out;
