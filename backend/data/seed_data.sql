@@ -48,4 +48,51 @@ VALUES (
     2
 );
 
--- Add more recipes as needed...
+
+-- Recipe 4: 宫保鸡丁 (Kung Pao Chicken)
+INSERT INTO recipes (name, description, ingredients, instructions, image_url, tags, difficulty, cuisine, prep_time_minutes, cook_time_minutes, servings)
+VALUES (
+    '宫保鸡丁',
+    '一道闻名中外的特色传统名菜。',
+    '[{"name": "鸡胸肉", "quantity": "200克"}, {"name": "花生米", "quantity": "50克"}, {"name": "干辣椒", "quantity": "10克"}, {"name": "花椒", "quantity": "5克"}, {"name": "葱段", "quantity": "15克"}, {"name": "姜片", "quantity": "5克"}, {"name": "蒜末", "quantity": "5克"}, {"name": "料酒", "quantity": "10毫升"}, {"name": "酱油", "quantity": "10毫升"}, {"name": "醋", "quantity": "15毫升"}, {"name": "糖", "quantity": "10克"}, {"name": "淀粉", "quantity": "5克"}, {"name": "食用油", "quantity": "适量"}]',
+    '["1. 鸡胸肉切丁，用料酒、酱油、淀粉腌制10分钟。", "2. 干辣椒切段，去籽。", "3. 锅中放油烧热，下花生米炸至酥脆捞出。", "4. 锅中留底油，下花椒、干辣椒炒香。", "5. 下入鸡丁翻炒至变色。", "6. 加入葱段、姜片、蒜末炒香。", "7. 调入酱油、醋、糖，翻炒均匀。", "8. 倒入花生米，翻炒均匀即可。"]',
+    'images/kung_pao_chicken.jpg',
+    '["家常菜", "川菜", "香辣", "中等"]',
+    '中等',
+    '川菜',
+    15,
+    20,
+    2
+);
+
+-- Recipe 5: 鱼香肉丝 (Yu Xiang Rou Si)
+INSERT INTO recipes (name, description, ingredients, instructions, image_url, tags, difficulty, cuisine, prep_time_minutes, cook_time_minutes, servings)
+VALUES (
+    '鱼香肉丝',
+    '具有咸、酸、甜、辣等多种风味的经典川菜。',
+    '[{"name": "猪里脊肉", "quantity": "200克"}, {"name": "木耳", "quantity": "50克"}, {"name": "胡萝卜", "quantity": "50克"}, {"name": "青椒", "quantity": "50克"}, {"name": "葱姜蒜末", "quantity": "适量"}, {"name": "豆瓣酱", "quantity": "15克"}, {"name": "酱油", "quantity": "10毫升"}, {"name": "醋", "quantity": "15毫升"}, {"name": "糖", "quantity": "10克"}, {"name": "淀粉", "quantity": "5克"}, {"name": "食用油", "quantity": "适量"}]',
+    '["1. 猪里脊肉切丝，用淀粉、料酒腌制10分钟。", "2. 木耳、胡萝卜、青椒切丝。", "3. 葱姜蒜切末。", "4. 锅中放油烧热，下肉丝翻炒至变色。", "5. 加入豆瓣酱炒出红油。", "6. 加入木耳、胡萝卜、青椒翻炒均匀。", "7. 调入酱油、醋、糖，翻炒均匀。", "8. 加入葱姜蒜末炒香即可。"]',
+    'images/yu_xiang_rou_si.jpg',
+    '["家常菜", "川菜", "鱼香", "中等"]',
+    '中等',
+    '川菜',
+    20,
+    25,
+    2
+);
+
+-- Recipe 6: 可乐鸡翅 (Cola Chicken Wings)
+INSERT INTO recipes (name, description, ingredients, instructions, image_url, tags, difficulty, cuisine, prep_time_minutes, cook_time_minutes, servings)
+VALUES (
+    '可乐鸡翅',
+    '香甜可口，做法简单的家常菜。',
+    '[{"name": "鸡翅", "quantity": "500克"}, {"name": "可乐", "quantity": "330毫升"}, {"name": "姜片", "quantity": "3片"}, {"name": "葱段", "quantity": "2段"}, {"name": "酱油", "quantity": "10毫升"}, {"name": "食用油", "quantity": "适量"}]',
+    '["1. 鸡翅洗净，焯水。", "2. 锅中放油烧热，下鸡翅煎至两面金黄。", "3. 加入姜片、葱段炒香。", "4. 倒入可乐和酱油，大火烧开转小火炖煮20分钟。", "5. 大火收汁至汤汁浓稠即可。"]',
+    'images/cola_chicken_wings.jpg',
+    '["家常菜", "快手菜", "简单", "甜"]',
+    '简单',
+    '家常菜',
+    5,
+    25,
+    3
+);
