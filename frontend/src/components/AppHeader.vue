@@ -14,20 +14,19 @@
 
     <v-spacer></v-spacer>
 
-    <v-btn text to="/random" class="header-button d-none d-sm-flex">
-      <v-icon left class="mr-1">mdi-dice-5-outline</v-icon>
-      随机看看
+    <!-- Use icon buttons directly on larger screens now -->
+    <v-btn icon to="/random" class="header-button d-none d-sm-flex">
+      <v-icon>mdi-dice-5-outline</v-icon>
     </v-btn>
-    <v-btn text to="/menu" class="header-button d-none d-sm-flex">
-       <v-icon left class="mr-1">mdi-silverware-fork-knife</v-icon>
-       今日菜单
+    <v-btn icon to="/menu" class="header-button d-none d-sm-flex">
+       <v-icon>mdi-silverware-fork-knife</v-icon>
     </v-btn>
 
-    <!-- Buttons for smaller screens -->
-     <v-btn icon to="/random" class="d-sm-none">
+    <!-- Buttons for smaller screens (already icons) -->
+     <v-btn icon to="/random" class="d-sm-none mx-1"> <!-- Added horizontal margin -->
        <v-icon>mdi-dice-5-outline</v-icon>
      </v-btn>
-     <v-btn icon to="/menu" class="d-sm-none">
+     <v-btn icon to="/menu" class="d-sm-none mx-1"> <!-- Added horizontal margin -->
        <v-icon>mdi-silverware-fork-knife</v-icon>
      </v-btn>
 
@@ -89,10 +88,8 @@
 }
 
 .header-button {
-  text-transform: none; /* Prevent buttons from being all caps */
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  margin: 0 4px; /* Add some horizontal margin */
+  /* Adjusted margin for icon buttons */
+  margin: 0 8px; /* Increased horizontal margin */
 }
 
 .user-menu-button {
