@@ -1,5 +1,39 @@
+.ingredients-section {
+  margin-top: 8px;
+}
+
+.ingredients-title {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  color: var(--v-primary-base);
+}
+
 .ingredient-list {
-  margin-left: 16px; /* Adjust the value as needed */
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ingredient-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.1);
+}
+
+.ingredient-list li:last-child {
+  border-bottom: none;
+}
+
+.ingredient-name {
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.ingredient-quantity {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.9em;
 }
 
 /* Styles for RecipeCard.vue */

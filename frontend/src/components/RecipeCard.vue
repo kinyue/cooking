@@ -26,12 +26,18 @@
       </div>
 
       <v-card-text class="pa-0 mb-2 text-body-2 text-medium-emphasis flex-grow-1">
-        <strong class="text-body-2 font-weight-medium">主要食材:</strong>
-        <ul class="ingredient-list">
-          <li v-for="(ingredient, index) in recipe.ingredients.slice(0, 6)" :key="index">
-            {{ ingredient.name }} - {{ ingredient.quantity }}
-          </li>
-        </ul>
+        <div class="ingredients-section">
+          <div class="ingredients-title">
+            <v-icon icon="mdi-food-variant" color="primary" size="small" class="mr-1"></v-icon>
+            <strong class="text-body-2 font-weight-medium">主要食材</strong>
+          </div>
+          <ul class="ingredient-list">
+            <li v-for="(ingredient, index) in recipe.ingredients.slice(0, 6)" :key="index">
+              <span class="ingredient-name">{{ ingredient.name }}</span>
+              <span class="ingredient-quantity">{{ ingredient.quantity }}</span>
+            </li>
+          </ul>
+        </div>
       </v-card-text>
 
       <v-divider class="my-2"></v-divider>
