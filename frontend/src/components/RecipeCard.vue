@@ -47,8 +47,9 @@
           <v-icon right icon="mdi-chevron-right"></v-icon>
         </v-btn>
         <v-spacer></v-spacer>
-        <v-btn icon="mdi-pencil" size="small" variant="text" color="grey" @click.stop="editRecipe"></v-btn>
-         <v-btn icon="mdi-delete" size="small" variant="text" color="grey" @click.stop="deleteRecipe"></v-btn>
+        <v-btn icon="mdi-pencil" size="small" variant="text" color="orange-lighten-2" @click.stop="editRecipe"></v-btn>
+        <v-btn icon="mdi-delete" size="small" variant="text" color="red-lighten-2" @click.stop="deleteRecipe"></v-btn>
+        <v-btn icon="mdi-plus-box" size="small" variant="text" color="green-lighten-2"></v-btn>
       </v-card-actions>
     </div>
   </v-card>
