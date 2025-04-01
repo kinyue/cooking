@@ -1,7 +1,7 @@
 <template>
   <v-app-bar app color="surface" flat density="comfortable" class="app-header">
     <v-img
-      src="/logo.png"  
+      src="@/assets/logo.png"  
       max-height="40"
       max-width="40"
       contain
