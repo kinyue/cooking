@@ -43,7 +43,7 @@ def get_recipe(id):
     try:
         recipe = db_recipe.get_recipe_by_id(id)
         if recipe is None:
-            abort(404, description=f"Recipe with id {id} not found.")
+            abort(404, description=f"Recipe with id {id} not found.")     
         return jsonify({"data": recipe})
     except Exception as e:
         print(f"Error fetching recipe {id}: {e}")

@@ -110,7 +110,6 @@ export default {
         const recipeId = this.route.params.id;
         const response = await getRecipeById(recipeId);
         this.recipe = response.data;
-        console.log('Recipe details:', this.recipe);
       } catch (error) {
         console.error('Failed to fetch recipe details:', error);
         this.error = error;
