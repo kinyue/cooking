@@ -4,13 +4,16 @@
 }
 
 .app-logo {
-  cursor: pointer; /* Indicate logo is clickable (if it links home) */
+  cursor: pointer; /* Indicate logo is clickable */
+  display: block; /* Ensure proper image rendering */
+  width: 40px; /* Fixed width matching max-width */
+  height: 40px; /* Fixed height matching max-height */
 }
 
 .app-title {
-  flex-grow: 0; /* Prevent title from taking too much space */
-  min-width: 100px; /* Adjust as needed */
-  font-family: 'Roboto', sans-serif; /* Example: Use a specific font */
+  flex-grow: 0;
+  flex-shrink: 0; /* Prevent title shrinking */
+  white-space: nowrap; /* Prevent text wrapping */
 }
 
 .header-button {

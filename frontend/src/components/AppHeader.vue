@@ -1,16 +1,18 @@
 <template>
   <v-app-bar app color="surface" flat density="comfortable" class="app-header">
-    <v-img
-      src="@/assets/logo.png"  
-      max-height="40"
-      max-width="40"
-      contain
-      class="ml-4 mr-2 app-logo"
-      alt="App Logo"
-    ></v-img>
-    <v-app-bar-title class="app-title">
-      <span class="font-weight-bold">美味秘籍</span>
-    </v-app-bar-title>
+    <router-link to="/" class="d-flex align-center text-decoration-none">
+      <v-img
+        src="@/assets/logo.png"
+        max-height="40"
+        max-width="40"
+        contain
+        class="ml-4 mr-2 app-logo"
+        alt="App Logo"
+      ></v-img>
+      <div class="app-title">
+        <span class="font-weight-bold text-h6 text-primary">美味秘籍</span>
+      </div>
+    </router-link>
 
     <v-spacer></v-spacer>
 
