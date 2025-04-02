@@ -1,6 +1,7 @@
 <template>
   <v-container>
-    <v-row justify="center">
+    <!-- Main content card - only render when recipe data is loaded and not loading -->
+    <v-row v-if="recipe && !loading" justify="center">
       <v-col cols="12" md="8">
         <v-card>
           <v-img
@@ -76,8 +77,9 @@
 </template>
 
 <script>
-// import { ref, onMounted } from 'vue';
+// import { ref, onMounted } from 'vue'; // Keep ref/onMounted commented if not used directly here
 import { useRoute, useRouter } from 'vue-router';
+// Import the named export getRecipeById
 import { getRecipeById } from '@/services/api';
 
 export default {
@@ -107,7 +109,8 @@ export default {
       try {
         const recipeId = this.route.params.id;
         const response = await getRecipeById(recipeId);
-        this.recipe = response.data.data;
+        this.recipe = response.data;
+        console.log('Recipe details:', this.recipe);
       } catch (error) {
         console.error('Failed to fetch recipe details:', error);
         this.error = error;
