@@ -4,11 +4,7 @@
     <v-row v-if="recipe && !loading" justify="center">
       <v-col cols="12" md="8">
         <v-card class="elevation-2">
-          <v-img
-            src="https://picsum.photos/800/400?random"
-            height="400"
-            cover
-          ></v-img>
+          <v-img src="https://picsum.photos/800/400?random" height="400" cover></v-img>
 
           <v-card-title class="text-h4 font-weight-medium">
             {{ recipe.name }}
@@ -21,11 +17,7 @@
           <v-card-text>
             <h3 class="text-h5 font-weight-medium mt-6 mb-3">主要食材</h3>
             <v-list>
-              <v-list-item
-                v-for="(ingredient, index) in recipe.ingredients"
-                :key="index"
-                density="compact"
-              >
+              <v-list-item v-for="(ingredient, index) in recipe.ingredients" :key="index" density="compact">
                 <v-list-item-title>
                   {{ ingredient.name }} - {{ ingredient.quantity }}
                 </v-list-item-title>
@@ -34,23 +26,14 @@
 
             <h3 class="text-h5 font-weight-medium mt-6 mb-3">烹饪步骤</h3>
             <v-timeline density="compact">
-              <v-timeline-item
-                v-for="(step, index) in recipe.instructions"
-                :key="index"
-                :dot-color="'primary'"
-                size="small"
-              >
+              <v-timeline-item v-for="(step, index) in recipe.instructions" :key="index" :dot-color="'primary'"
+                size="small">
                 {{ step }}
               </v-timeline-item>
             </v-timeline>
 
             <v-chip-group class="mt-6">
-              <v-chip
-                v-for="tag in recipe.tags"
-                :key="tag"
-                label
-                class="ma-1"
-              >
+              <v-chip v-for="tag in recipe.tags" :key="tag" label class="ma-1">
                 {{ tag }}
               </v-chip>
             </v-chip-group>
@@ -58,32 +41,14 @@
 
           <v-divider class="my-3"></v-divider>
           <v-card-actions class="pa-4">
-            <v-btn
-              color="primary"
-              variant="text"
-              @click="$router.back()"
-              prepend-icon="mdi-arrow-left"
-            >
+            <v-btn color="grey-darken-1" variant="text" size="small" @click="$router.back()" prepend-icon="mdi-arrow-left">
               返回
             </v-btn>
             <v-spacer></v-spacer>
-            <v-btn
-              color="primary"
-              variant="outlined"
-              @click="editRecipe"
-              prepend-icon="mdi-pencil"
-            >
-              编辑
-            </v-btn>
-            <v-btn
-              color="error"
-              variant="outlined"
-              @click="deleteRecipe"
-              prepend-icon="mdi-delete"
-              class="ml-3"
-            >
-              删除
-            </v-btn>
+            <v-btn icon="mdi-pencil" size="small" variant="text" color="orange-lighten-2"
+              @click.stop="editRecipe"></v-btn>
+            <v-btn icon="mdi-delete" size="small" variant="text" color="orange-lighten-2"
+              @click.stop="deleteRecipe"></v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
@@ -100,13 +65,7 @@
     <!-- Error message -->
     <v-row v-else-if="error" justify="center">
       <v-col cols="12" md="8">
-        <v-alert
-          type="error"
-          variant="tonal"
-          title="加载失败"
-          text="加载菜谱详情失败，请稍后重试。"
-          class="mb-4"
-        ></v-alert>
+        <v-alert type="error" variant="tonal" title="加载失败" text="加载菜谱详情失败，请稍后重试。" class="mb-4"></v-alert>
       </v-col>
     </v-row>
   </v-container>

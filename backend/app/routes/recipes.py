@@ -78,6 +78,7 @@ def create_recipe():
 def update_recipe(id):
     """Update an existing recipe."""
     data = request.get_json()
+    print(f"Received data for update: {data}")
     if not data:
         abort(400, description="No data provided for update.")
 

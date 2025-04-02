@@ -29,13 +29,26 @@ const getRecipeById = async (recipeId) => {
   }
 };
 
+// Function to update existing recipe by its ID with new data
+const updateRecipe = async (recipeId, recipeData) => {
+  try {
+    const response = await api.put(`/recipes/${recipeId}`, recipeData);
+    return response.data;
+  } catch (error) {
+    console.error(`API Error updating recipe ${recipeId}:`, error);
+    throw error; // Re-throw the error
+  }
+}
+
 export { // Use named exports for better clarity
   getRecipes,
   getRecipeById,
+  updateRecipe
 };
 
 // Keep default export for potential backward compatibility or other uses
 export default {
   getRecipes,
   getRecipeById,
+  updateRecipe
 };
