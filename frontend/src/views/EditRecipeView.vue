@@ -42,7 +42,8 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import RecipeForm from '@/components/RecipeForm.vue';
-import { getRecipeById } from '@/services/api'; // Assuming updateRecipe exists
+import { getRecipeById } from '@/services/api';
+import { updateRecipe } from '@/services/api'; 
 // TODO: Import updateRecipe from api service when implemented
 
 export default {
@@ -66,7 +67,7 @@ export default {
           throw new Error("Recipe ID not found in route parameters.");
         }
         const response = await getRecipeById(recipeId);
-        recipeData.value = response.data; // Assuming API returns { data: recipeObject }
+        recipeData.value = response.data; 
       } catch (err) {
         console.error("Failed to fetch recipe data for editing:", err);
         error.value = err;
@@ -76,18 +77,22 @@ export default {
     };
 
     const handleUpdateRecipe = async (updatedRecipeData) => {
-      console.log('Submitting updated recipe:', updatedRecipeData);
-      // TODO: Implement API call to update the recipe
-      // try {
-      //   const response = await updateRecipe(recipeData.value.id, updatedRecipeData);
-      //   // Navigate on success
-      //   router.push({ name: 'recipe-detail', params: { id: recipeData.value.id } });
-      // } catch (updateError) {
-      //   console.error("Failed to update recipe:", updateError);
-      //   // Handle update error (e.g., show a snackbar)
-      // }
-       alert('更新功能尚未实现！'); // Placeholder
-       router.push({ name: 'recipe-detail', params: { id: recipeData.value.id } }); // Navigate back for now
+
+      if (!recipeData.value?.id) {
+         console.error("Cannot update recipe: ID is missing.");
+         alert("无法更新菜谱：缺少菜谱ID。");
+         return;
+      }
+
+      try {
+        await updateRecipe(recipeData.value.id, updatedRecipeData);
+        // Navigate on success
+        router.push({ name: 'recipe-detail', params: { id: recipeData.value.id } });
+      } catch (updateError) {
+        console.error("Failed to update recipe:", updateError);
+        // Handle update error (e.g., show a snackbar or alert)
+        alert(`更新失败: ${updateError.message || '请稍后重试'}`); 
+      }
     };
 
     const goBack = () => {

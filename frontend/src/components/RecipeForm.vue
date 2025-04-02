@@ -213,6 +213,7 @@ watch(instructionsText, (newText) => {
 
 // Submit form handler
 const submitForm = async () => {
+  console.log('submitForm function called'); // Log function entry
   const { valid } = await form.value.validate();
   if (valid) {
     // Prepare data for submission (clone to avoid modifying original ref directly)
@@ -224,6 +225,8 @@ const submitForm = async () => {
     // dataToSubmit.tags = JSON.stringify(dataToSubmit.tags);
 
     emit('submit', dataToSubmit);
+  } else {
+    console.log('Form validation failed'); // Log validation failure
   }
 };
 
