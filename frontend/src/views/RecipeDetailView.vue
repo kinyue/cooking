@@ -1,16 +1,16 @@
 <template>
-  <v-container>
+  <v-container fluid class="pa-5">
     <!-- Main content card - only render when recipe data is loaded and not loading -->
     <v-row v-if="recipe && !loading" justify="center">
       <v-col cols="12" md="8">
-        <v-card>
+        <v-card class="elevation-2">
           <v-img
             src="https://picsum.photos/800/400?random"
             height="400"
             cover
           ></v-img>
 
-          <v-card-title class="text-h4 font-weight-bold">
+          <v-card-title class="text-h4 font-weight-medium">
             {{ recipe.name }}
           </v-card-title>
 
@@ -19,21 +19,32 @@
           </v-card-subtitle>
 
           <v-card-text>
-            <h3 class="text-h5 font-weight-bold mt-4">主要食材</h3>
-            <ul>
-              <li v-for="(ingredient, index) in recipe.ingredients" :key="index">
-                {{ ingredient.name }} - {{ ingredient.quantity }}
-              </li>
-            </ul>
+            <h3 class="text-h5 font-weight-medium mt-6 mb-3">主要食材</h3>
+            <v-list>
+              <v-list-item
+                v-for="(ingredient, index) in recipe.ingredients"
+                :key="index"
+                density="compact"
+              >
+                <v-list-item-title>
+                  {{ ingredient.name }} - {{ ingredient.quantity }}
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
 
-            <h3 class="text-h5 font-weight-bold mt-4">烹饪步骤</h3>
-            <ol>
-              <li v-for="(step, index) in recipe.instructions" :key="index">
+            <h3 class="text-h5 font-weight-medium mt-6 mb-3">烹饪步骤</h3>
+            <v-timeline density="compact">
+              <v-timeline-item
+                v-for="(step, index) in recipe.instructions"
+                :key="index"
+                :dot-color="'primary'"
+                size="small"
+              >
                 {{ step }}
-              </li>
-            </ol>
+              </v-timeline-item>
+            </v-timeline>
 
-            <v-chip-group class="mt-4">
+            <v-chip-group class="mt-6">
               <v-chip
                 v-for="tag in recipe.tags"
                 :key="tag"
@@ -45,14 +56,32 @@
             </v-chip-group>
           </v-card-text>
 
-          <v-card-actions class="justify-end">
-            <v-btn color="primary" @click="$router.back()">
+          <v-divider class="my-3"></v-divider>
+          <v-card-actions class="pa-4">
+            <v-btn
+              color="primary"
+              variant="text"
+              @click="$router.back()"
+              prepend-icon="mdi-arrow-left"
+            >
               返回
             </v-btn>
-            <v-btn color="primary" @click="editRecipe">
+            <v-spacer></v-spacer>
+            <v-btn
+              color="primary"
+              variant="outlined"
+              @click="editRecipe"
+              prepend-icon="mdi-pencil"
+            >
               编辑
             </v-btn>
-            <v-btn color="error" @click="deleteRecipe">
+            <v-btn
+              color="error"
+              variant="outlined"
+              @click="deleteRecipe"
+              prepend-icon="mdi-delete"
+              class="ml-3"
+            >
               删除
             </v-btn>
           </v-card-actions>
@@ -61,16 +90,23 @@
     </v-row>
 
     <!-- Loading indicator -->
-    <v-row v-if="loading" justify="center">
+    <v-row v-if="loading" justify="center" align="center" style="min-height: 200px;">
       <v-col cols="12" class="text-center">
         <v-progress-circular indeterminate color="primary"></v-progress-circular>
+        <p class="mt-2 text-medium-emphasis">加载中...</p>
       </v-col>
     </v-row>
 
     <!-- Error message -->
     <v-row v-else-if="error" justify="center">
-      <v-col cols="12">
-        <v-alert type="error" text="加载菜谱详情失败，请稍后重试。" :value="true"></v-alert>
+      <v-col cols="12" md="8">
+        <v-alert
+          type="error"
+          variant="tonal"
+          title="加载失败"
+          text="加载菜谱详情失败，请稍后重试。"
+          class="mb-4"
+        ></v-alert>
       </v-col>
     </v-row>
   </v-container>
