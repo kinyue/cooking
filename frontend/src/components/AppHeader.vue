@@ -22,11 +22,11 @@
     </v-btn>
     <v-btn icon @click="showMenuDialog = true" class="header-button d-none d-sm-flex">
       <v-badge
-        :content="todayMenu.count"
+        :content="todayMenu.count" 
         :model-value="todayMenu.count > 0"
         color="error"
         floating
-        dot
+        overlap 
       >
         <v-icon>mdi-silverware-fork-knife</v-icon>
       </v-badge>
@@ -38,11 +38,11 @@
     </v-btn>
     <v-btn icon @click="showMenuDialog = true" class="d-sm-none mx-1">
       <v-badge
-        :content="todayMenu.count"
+        :content="todayMenu.count" 
         :model-value="todayMenu.count > 0"
         color="error"
         floating
-        dot
+        overlap 
       >
         <v-icon>mdi-silverware-fork-knife</v-icon>
       </v-badge>
