@@ -15,15 +15,3 @@ body {
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
 }
-
-/* Example: Link styling */
-a {
-  color: #1976D2; /* Example primary color from Vuetify */
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-/* Add other global styles or resets here */
