@@ -252,19 +252,22 @@ const showSnackbar = (message, color = 'success') => {
 
 // Format list for clipboard and export
 const formatList = () => {
-  let text = '今日菜单\n\n';
+  let text = '# 今日菜单\n\n';
   
   // Add recipes section
-  text += '【已选菜谱】\n';
-  menuItems.value.forEach((recipe, index) => {
-    text += `${index + 1}. ${recipe.name}\n`;
+  text += '## 已选菜谱\n\n';
+  menuItems.value.forEach((recipe) => {
+    text += `- ${recipe.name}\n`;
   });
   
-  // Add ingredients section
-  text += '\n【所需食材】\n';
-  aggregatedIngredients.value.forEach((ingredient, index) => {
-    text += `${index + 1}. ${ingredient.name} ${ingredient.quantity}\n`;
+  // Add ingredients section with TODO format
+  text += '\n## 所需食材\n\n';
+  aggregatedIngredients.value.forEach((ingredient) => {
+    text += `- [ ] ${ingredient.name} - *${ingredient.quantity}*\n`;
   });
+  
+  text += '\n---\n'; // Add horizontal rule at the end
+  text += `*导出时间：${new Date().toLocaleString('zh-CN')}*`; // Add timestamp
   
   return text;
 };
