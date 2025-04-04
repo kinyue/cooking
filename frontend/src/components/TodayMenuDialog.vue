@@ -1,78 +1,158 @@
 <template>
   <v-dialog v-model="dialogVisible" max-width="600px">
-    <v-card>
-      <v-card-title class="text-h5 pa-4">
-        今日菜单
+    <v-card class="today-menu-dialog">
+      <v-toolbar color="primary" class="text-white">
+        <v-toolbar-title class="text-h6">
+          <v-icon icon="mdi-silverware-variant" class="mr-2"></v-icon>
+          今日菜单
+        </v-toolbar-title>
         <v-spacer></v-spacer>
-        <v-btn icon @click="closeDialog">
+        <v-btn icon variant="text" color="white" @click="closeDialog">
           <v-icon>mdi-close</v-icon>
         </v-btn>
-      </v-card-title>
-      <v-divider></v-divider>
+      </v-toolbar>
       
-      <v-card-text class="pa-4">
-        <div v-if="menuItems.length === 0" class="text-center py-4 text-medium-emphasis">
-          暂未添加任何菜谱
+      <v-card-text class="pa-6">
+        <div v-if="menuItems.length === 0" class="empty-state pa-8 text-center">
+          <v-icon icon="mdi-playlist-plus" size="64" color="grey-lighten-1" class="mb-4"></v-icon>
+          <div class="text-h6 text-grey-darken-1">暂未添加任何菜谱</div>
+          <div class="text-body-2 text-grey mt-2">
+            浏览菜谱并点击 <v-icon icon="mdi-plus-box" size="small" color="success"></v-icon> 添加到今日菜单
+          </div>
         </div>
-        <div v-else>
+
+        <div v-else class="menu-content">
+          <!-- Summary Stats -->
+          <div class="stats-row d-flex align-center mb-6">
+            <v-chip
+              label
+              variant="elevated"
+              color="primary"
+              class="mr-4"
+            >
+              <v-icon start icon="mdi-book-open-variant"></v-icon>
+              菜谱数量：{{ menuItems.length }}
+            </v-chip>
+            <v-chip
+              label
+              variant="elevated"
+              color="success"
+            >
+              <v-icon start icon="mdi-food-variant"></v-icon>
+              食材数量：{{ aggregatedIngredients.length }}
+            </v-chip>
+          </div>
+
           <!-- Recipes Section -->
-          <div class="recipes-section mb-4">
-            <div class="text-subtitle-1 font-weight-medium mb-2">
-              <v-icon icon="mdi-book-open-variant" class="mr-1"></v-icon>
-              已选菜谱
+          <v-sheet
+            class="recipes-section mb-6 rounded-lg"
+            elevation="1"
+          >
+            <div class="section-header d-flex align-center px-4 py-3">
+              <div class="text-subtitle-1 font-weight-bold">
+                <v-icon icon="mdi-book-open-variant" color="primary" class="mr-2"></v-icon>
+                已选菜谱
+              </div>
+              <v-spacer></v-spacer>
+              <v-btn
+                variant="text"
+                size="small"
+                color="primary"
+                prepend-icon="mdi-checkbox-marked-circle-outline"
+                @click="toggleAllRecipes"
+              >
+                {{ allRecipesChecked ? '取消全选' : '全选' }}
+              </v-btn>
             </div>
-            <v-list>
+            <v-divider></v-divider>
+            <v-list class="recipe-list">
               <v-list-item
                 v-for="recipe in menuItems"
                 :key="recipe.id"
                 :value="recipe"
+                class="recipe-item"
+                rounded="0"
               >
                 <template v-slot:prepend>
                   <v-checkbox-btn
                     v-model="recipe.checked"
+                    color="primary"
                     density="comfortable"
                   ></v-checkbox-btn>
                 </template>
-                <v-list-item-title>{{ recipe.name }}</v-list-item-title>
+
+                <v-list-item-title class="recipe-name">
+                  {{ recipe.name }}
+                </v-list-item-title>
+
                 <template v-slot:append>
-                  <v-btn
-                    icon="mdi-close"
-                    size="small"
-                    variant="text"
-                    density="comfortable"
-                    color="error"
-                    @click="removeRecipe(recipe.id)"
-                  ></v-btn>
+                  <div class="d-flex align-center">
+                    <v-chip
+                      size="small"
+                      variant="flat"
+                      color="primary"
+                      class="mr-2"
+                    >
+                      {{ recipe.ingredients.length }}种食材
+                    </v-chip>
+                    <v-btn
+                      icon="mdi-delete"
+                      size="small"
+                      variant="text"
+                      color="error"
+                      @click="removeRecipe(recipe.id)"
+                    ></v-btn>
+                  </div>
                 </template>
               </v-list-item>
             </v-list>
-          </div>
+          </v-sheet>
 
           <!-- Ingredients Section -->
-          <div class="ingredients-section">
-            <div class="text-subtitle-1 font-weight-medium mb-2">
-              <v-icon icon="mdi-food-variant" class="mr-1"></v-icon>
-              所需食材
+          <v-sheet
+            class="ingredients-section"
+            elevation="1"
+            rounded="lg"
+          >
+            <div class="section-header d-flex align-center px-4 py-3">
+              <div class="text-subtitle-1 font-weight-bold">
+                <v-icon icon="mdi-food-variant" color="success" class="mr-2"></v-icon>
+                所需食材
+              </div>
+              <v-spacer></v-spacer>
+              <v-btn
+                variant="text"
+                size="small"
+                color="success"
+                prepend-icon="mdi-checkbox-marked-circle-outline"
+                @click="toggleAllIngredients"
+              >
+                {{ allIngredientsChecked ? '取消全选' : '全选' }}
+              </v-btn>
             </div>
-            <v-list>
+            <v-divider></v-divider>
+            <v-list class="ingredient-list">
               <v-list-item
                 v-for="(ingredient, index) in aggregatedIngredients"
                 :key="index"
                 density="comfortable"
+                class="ingredient-item"
+                rounded="0"
               >
                 <template v-slot:prepend>
                   <v-checkbox-btn
                     v-model="ingredient.checked"
+                    color="success"
                     density="comfortable"
                   ></v-checkbox-btn>
                 </template>
                 <v-list-item-title>
                   {{ ingredient.name }}
-                  <span class="text-medium-emphasis">{{ ingredient.quantity }}</span>
+                  <span class="text-grey ml-2">{{ ingredient.quantity }}</span>
                 </v-list-item-title>
               </v-list-item>
             </v-list>
-          </div>
+          </v-sheet>
         </div>
       </v-card-text>
 
@@ -81,28 +161,57 @@
       <v-card-actions v-if="menuItems.length > 0" class="pa-4">
         <v-spacer></v-spacer>
         <v-btn
-          variant="text"
-          @click="clearAll"
+          variant="outlined"
           color="error"
+          @click="confirmClearAll"
           prepend-icon="mdi-delete-sweep"
+          class="mr-2"
         >
           清空菜单
         </v-btn>
         <v-btn
+          variant="elevated"
           color="primary"
           @click="clearChecked"
           :disabled="!hasCheckedItems"
-          prepend-icon="mdi-check-circle"
+          prepend-icon="mdi-checkbox-remove"
         >
-          清除已选
+          移除已选
         </v-btn>
       </v-card-actions>
     </v-card>
+
+    <!-- Confirmation Dialog -->
+    <v-dialog v-model="showConfirmDialog" width="auto">
+      <v-card class="pa-4">
+        <v-card-title class="text-h6 mb-2">
+          <v-icon icon="mdi-alert" color="warning" class="mr-2"></v-icon>
+          确认清空
+        </v-card-title>
+        <v-card-text>确定要清空今日菜单吗？此操作无法撤销。</v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            variant="text"
+            @click="showConfirmDialog = false"
+          >
+            取消
+          </v-btn>
+          <v-btn
+            color="error"
+            @click="handleConfirmClear"
+            variant="elevated"
+          >
+            确定清空
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-dialog>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 
 // Props and Emits
 const props = defineProps({
@@ -116,6 +225,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'remove', 'clear-all', 'clear-checked']);
 
 // Local state
+const showConfirmDialog = ref(false);
 const dialogVisible = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
@@ -129,8 +239,16 @@ const hasCheckedItems = computed(() => {
          aggregatedIngredients.value.some(ing => ing.checked);
 });
 
+const allRecipesChecked = computed(() => {
+  return menuItems.value.length > 0 && menuItems.value.every(recipe => recipe.checked);
+});
+
+const allIngredientsChecked = computed(() => {
+  return aggregatedIngredients.value.length > 0 && 
+         aggregatedIngredients.value.every(ing => ing.checked);
+});
+
 const aggregatedIngredients = computed(() => {
-  // Create a map to aggregate ingredients
   const ingredientMap = new Map();
 
   menuItems.value.forEach(recipe => {
@@ -147,7 +265,6 @@ const aggregatedIngredients = computed(() => {
     });
   });
 
-  // Convert map to array and format quantities
   return Array.from(ingredientMap.values()).map(ing => ({
     name: ing.name,
     quantity: ing.quantities.join('、'),
@@ -164,22 +281,106 @@ const removeRecipe = (recipeId) => {
   emit('remove', recipeId);
 };
 
-const clearAll = () => {
-  if (confirm('确定要清空今日菜单吗？')) {
-    emit('clear-all');
-  }
+const confirmClearAll = () => {
+  showConfirmDialog.value = true;
+};
+
+const handleConfirmClear = () => {
+  showConfirmDialog.value = false;
+  emit('clear-all');
 };
 
 const clearChecked = () => {
   emit('clear-checked');
 };
+
+const toggleAllRecipes = () => {
+  const newState = !allRecipesChecked.value;
+  menuItems.value.forEach(recipe => {
+    recipe.checked = newState;
+  });
+};
+
+const toggleAllIngredients = () => {
+  const newState = !allIngredientsChecked.value;
+  aggregatedIngredients.value.forEach(ingredient => {
+    ingredient.checked = newState;
+  });
+};
 </script>
 
 <style scoped>
-.recipes-section, .ingredients-section {
+.today-menu-dialog {
   border-radius: 8px;
+  overflow: hidden;
+}
+
+.empty-state {
   background-color: rgb(var(--v-theme-surface-variant));
-  padding: 16px;
-  margin-bottom: 16px;
+  border-radius: 8px;
+}
+
+.section-header {
+  background-color: rgb(var(--v-theme-surface));
+}
+
+.recipe-list, .ingredient-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.recipe-item, .ingredient-item {
+  border-radius: 0 !important;
+  transition: background-color 0.2s;
+}
+
+.recipe-item:hover, .ingredient-item:hover {
+  background-color: rgb(var(--v-theme-surface-variant));
+}
+
+.recipe-name {
+  font-weight: 500;
+}
+
+/* Custom scrollbar styles */
+.recipe-list::-webkit-scrollbar,
+.ingredient-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.recipe-list::-webkit-scrollbar-track,
+.ingredient-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.recipe-list::-webkit-scrollbar-thumb,
+.ingredient-list::-webkit-scrollbar-thumb {
+  background-color: rgba(var(--v-theme-on-surface), 0.2);
+  border-radius: 4px;
+}
+
+.recipe-list::-webkit-scrollbar-thumb:hover,
+.ingredient-list::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(var(--v-theme-on-surface), 0.3);
+}
+
+/* Fade bottom shadow for scrollable lists */
+.recipe-list::after,
+.ingredient-list::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: linear-gradient(to top, rgb(var(--v-theme-surface)), transparent);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.recipe-list:hover::after,
+.ingredient-list:hover::after {
+  opacity: 1;
 }
 </style>
