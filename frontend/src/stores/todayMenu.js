@@ -8,6 +8,9 @@ export const useTodayMenuStore = defineStore('todayMenu', () => {
   // Getters
   const count = computed(() => items.value.length);
   const allItems = computed(() => items.value);
+  const hasRecipe = (recipeId) => {
+    return computed(() => items.value.some(item => item.id === recipeId)).value;
+  };
 
   // Actions
   function addRecipe(recipe) {
@@ -49,6 +52,8 @@ export const useTodayMenuStore = defineStore('todayMenu', () => {
     addRecipe,
     removeRecipe,
     clearAll,
-    clearChecked
+    clearChecked,
+    // Expose getter
+    hasRecipe
   };
 });

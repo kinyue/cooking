@@ -55,7 +55,14 @@
         <v-spacer></v-spacer>
         <v-btn icon="mdi-pencil" size="small" variant="text" color="orange-lighten-2" @click.stop="editRecipe"></v-btn>
         <v-btn icon="mdi-delete" size="small" variant="text" color="red-lighten-2" @click.stop="deleteRecipe"></v-btn>
-        <v-btn icon="mdi-plus-box" size="small" variant="text" color="green-lighten-2" @click.stop="addToToday"></v-btn> 
+        <v-btn 
+          icon="mdi-plus-box" 
+          size="small" 
+          variant="text" 
+          :color="todayMenu.hasRecipe(recipe.id) ? 'grey' : 'green-lighten-2'" 
+          :disabled="todayMenu.hasRecipe(recipe.id)"
+          @click.stop="addToToday"
+        ></v-btn> 
       </v-card-actions>
     </div>
   </v-card>
