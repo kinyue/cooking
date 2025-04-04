@@ -51,14 +51,49 @@
       </v-col>
     </v-row>
   </v-container>
+
+  <!-- Global Snackbar -->
+  <v-snackbar
+    v-model="snackbar.show"
+    :color="snackbar.color"
+    :timeout="3000"
+    location="top"
+    elevation="4"
+    rounded="lg"
+    variant="tonal"
+    transition="slide-y-transition"
+  >
+    <template v-slot:default>
+      <div class="d-flex align-center">
+        <v-icon
+          :icon="snackbar.color === 'success' ? 'mdi-check-circle' : 'mdi-alert-circle'"
+          start
+          class="mr-2"
+        ></v-icon>
+        <div>
+          <div class="text-subtitle-2 font-weight-medium">
+            {{ snackbar.color === 'success' ? '操作成功' : '操作失败' }}
+          </div>
+          <div class="text-body-2">{{ snackbar.text }}</div>
+        </div>
+      </div>
+    </template>
+  </v-snackbar>
 </template>
 
 <script setup>
+import { useRoute } from 'vue-router';
 import { ref, onMounted } from 'vue';
-import RecipeCard from '@/components/RecipeCard.vue'; // Import the RecipeCard component
-import api from '@/services/api'; // Import your API service
+import RecipeCard from '@/components/RecipeCard.vue'; 
+import api from '@/services/api'; 
 
 // --- State ---
+const route = useRoute();
+const snackbar = ref({
+  show: false,
+  text: '',
+  color: 'success'
+});
 const recommendCount = ref(12); // Default recommendation count
 const countOptions = ref([4, 8, 12, 16, 20, 24]); // Options for the dropdown
 const recipes = ref([]); // Array to hold recipe data
@@ -71,12 +106,8 @@ const fetchRecipes = async (count) => {
   loading.value = true;
   error.value = null;
   try {
-    // --- Use Mock Data (Comment out API call) ---
-     // await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-     // recipes.value = mockRecipes.slice(0, count);
-    // --- OR Use API Call (Uncomment below and comment mock data) ---
-    const data = await api.getRecipes({ count: count }); // Assuming API supports count param
-    recipes.value = data.data; // Adjust based on actual API response structure
+    const data = await api.getRecipes({ count: count }); 
+    recipes.value = data.data; 
 
   } catch (err) {
     console.error("Failed to fetch recipes:", err);
@@ -95,6 +126,16 @@ const startRecommendation = () => {
 // --- Lifecycle Hooks ---
 onMounted(() => {
   fetchRecipes(recommendCount.value); // Fetch initial recipes when component mounts
+  
+  // Check for success message from recipe deletion
+  const deletedRecipe = route.query.deletedRecipe;
+  if (deletedRecipe) {
+    snackbar.value = {
+      show: true,
+      text: `菜谱 "${deletedRecipe}" 已删除`,
+      color: 'success'
+    };
+  }
 });
 
 </script>

@@ -22,6 +22,7 @@ const getRecipeById = async (recipeId) => {
   try {
     // Construct the URL for the specific recipe
     const response = await api.get(`/recipes/${recipeId}`);
+    console.log('Recipe data:', response); // Log the response for debugging
     return response.data; // Assuming backend returns the recipe object directly or within a data property
   } catch (error) {
     console.error(`API Error fetching recipe ${recipeId}:`, error);
@@ -40,15 +41,27 @@ const updateRecipe = async (recipeId, recipeData) => {
   }
 }
 
-export { // Use named exports for better clarity
+// Function to delete a recipe by its ID
+const deleteRecipe = async (recipeId) => {
+  try {
+    const response = await api.delete(`/recipes/${recipeId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`API Error deleting recipe ${recipeId}:`, error);
+    throw error; // Re-throw the error
+  }
+}
+
+export {
   getRecipes,
   getRecipeById,
-  updateRecipe
-};
+  updateRecipe,
+  deleteRecipe
+}
 
-// Keep default export for potential backward compatibility or other uses
 export default {
   getRecipes,
   getRecipeById,
-  updateRecipe
+  updateRecipe,
+  deleteRecipe
 };
