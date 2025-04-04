@@ -208,7 +208,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['submit']);
+const emit = defineEmits(['submit', 'cancel']); // Add 'cancel' to emits
 const router = useRouter();
 const form = ref(null); // Template ref for the v-form
 
@@ -304,11 +304,9 @@ const submitForm = async () => {
   }
 };
 
-// Cancel form handler
+// Cancel form handler - now emits an event
 const cancelForm = () => {
-  // Navigate back or reset form based on context
-  // For simplicity, just go back
-  router.go(-1);
+  emit('cancel'); // Emit cancel event instead of navigating directly
 };
 
 // Function to reset form (optional)

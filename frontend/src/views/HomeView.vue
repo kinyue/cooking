@@ -36,7 +36,7 @@
           <span class="text-h5">添加新菜谱</span>
         </v-card-title>
         <v-card-text>
-          <RecipeForm @submit="handleAddRecipeSubmit" />
+          <RecipeForm @submit="handleAddRecipeSubmit" @cancel="handleCancelAdd" /> 
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -181,6 +181,11 @@ const handleRecipeDeleted = (recipeId) => {
       color: 'success'
     };
   }
+};
+
+// Handler for canceling the add recipe dialog
+const handleCancelAdd = () => {
+  showAddDialog.value = false;
 };
 
 // Placeholder handler for adding recipe to today's menu

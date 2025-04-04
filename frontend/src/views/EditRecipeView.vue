@@ -113,7 +113,17 @@ export default {
     };
 
     const goBack = () => {
-      router.back();
+      // Check if the previous page was a recipe detail page
+      const previousPath = window.history.state?.back;
+      const recipeId = route.params.id; // Get current recipe ID for comparison
+      
+      // Check if previousPath exists, includes '/recipes/', and is not the base '/recipes/' path
+      // Also ensure the previous path ID matches the current recipe ID to confirm it's the detail page for *this* recipe
+      if (previousPath && previousPath.includes(`/recipes/${recipeId}`)) {
+         router.back(); // Go back to the recipe detail page
+      } else {
+         router.push('/'); // Go back to the home page
+      }
     };
 
     onMounted(() => {
