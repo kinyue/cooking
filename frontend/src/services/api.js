@@ -52,16 +52,30 @@ const deleteRecipe = async (recipeId) => {
   }
 }
 
+// Function to create a new recipe
+const createRecipe = async (recipeData) => {
+  try {
+    // Correct path with trailing slash: Sends request to http://127.0.0.1:5000/api/recipes/
+    const response = await api.post('/recipes/', recipeData); 
+    return response.data; 
+  } catch (error) {
+    console.error('API Error creating recipe:', error);
+    throw error; // Re-throw the error
+  }
+};
+
 export {
   getRecipes,
   getRecipeById,
+  createRecipe, 
   updateRecipe,
-  deleteRecipe
+  deleteRecipe,
 }
 
 export default {
   getRecipes,
   getRecipeById,
+  createRecipe, 
   updateRecipe,
   deleteRecipe
 };

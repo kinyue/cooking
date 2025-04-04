@@ -21,7 +21,25 @@
           开始推荐
         </v-btn>
       </v-col>
+      <v-col cols="6" sm="auto">
+        <v-btn color="secondary" @click="showAddDialog = true" size="large">
+          <v-icon left icon="mdi-plus-circle-outline" class="mr-1"></v-icon>
+          添加菜谱
+        </v-btn>
+      </v-col>
     </v-row>
+
+    <!-- Add Recipe Dialog -->
+    <v-dialog v-model="showAddDialog" persistent max-width="800px">
+      <v-card>
+        <v-card-title>
+          <span class="text-h5">添加新菜谱</span>
+        </v-card-title>
+        <v-card-text>
+          <RecipeForm @submit="handleAddRecipeSubmit" />
+        </v-card-text>
+      </v-card>
+    </v-dialog>
 
     <v-row>
       <v-col
@@ -32,7 +50,11 @@
         md="4"
         lg="3"
       >
-        <RecipeCard :recipe="recipe" />
+        <RecipeCard
+          :recipe="recipe"
+          @recipeDeleted="handleRecipeDeleted"
+          @addToTodayClicked="handleAddToToday"
+        />
       </v-col>
 
       <v-col v-if="loading" cols="12" class="text-center">
@@ -84,11 +106,13 @@
 <script setup>
 import { useRoute } from 'vue-router';
 import { ref, onMounted } from 'vue';
-import RecipeCard from '@/components/RecipeCard.vue'; 
-import api from '@/services/api'; 
+import RecipeCard from '@/components/RecipeCard.vue';
+import RecipeForm from '@/components/RecipeForm.vue'; // Import RecipeForm
+import api from '@/services/api';
 
 // --- State ---
 const route = useRoute();
+const showAddDialog = ref(false); // State for controlling the add recipe dialog
 const snackbar = ref({
   show: false,
   text: '',
@@ -122,6 +146,54 @@ const startRecommendation = () => {
   console.log(`Starting recommendation with count: ${recommendCount.value}`);
   fetchRecipes(recommendCount.value); // Re-fetch recipes based on selected count
 };
+
+// Handler for RecipeForm submission (Add mode)
+const handleAddRecipeSubmit = async (formData) => {
+  try {
+    const result = await api.createRecipe(formData);
+    showAddDialog.value = false; // Close dialog on success
+    await fetchRecipes(recommendCount.value); // Refresh the list
+    snackbar.value = { // Show success message
+      show: true,
+      text: `菜谱 "${result.data.name}" 添加成功！`,
+      color: 'success'
+    };
+  } catch (err) {
+    console.error("Failed to add recipe:", err);
+    snackbar.value = { // Show error message
+      show: true,
+      text: `添加菜谱失败: ${err.response?.data?.description || err.message || '请稍后再试'}`,
+      color: 'error'
+    };
+    // Keep dialog open on error
+  }
+};
+
+// Handler for recipe deletion from RecipeCard
+const handleRecipeDeleted = (recipeId) => {
+  const index = recipes.value.findIndex(r => r.id === recipeId);
+  if (index !== -1) {
+    const deletedRecipeName = recipes.value[index].name;
+    recipes.value.splice(index, 1);
+    snackbar.value = {
+      show: true,
+      text: `菜谱 "${deletedRecipeName}" 已删除`,
+      color: 'success'
+    };
+  }
+};
+
+// Placeholder handler for adding recipe to today's menu
+const handleAddToToday = (recipeId) => {
+  const recipe = recipes.value.find(r => r.id === recipeId);
+  console.log(`Add recipe ${recipeId} (${recipe?.name}) to today's menu (Not implemented)`);
+  snackbar.value = {
+    show: true,
+    text: `菜谱 "${recipe?.name || recipeId}" 已添加到今日菜单`,
+    color: 'info' // Use info color for placeholder actions
+  };
+};
+
 
 // --- Lifecycle Hooks ---
 onMounted(() => {

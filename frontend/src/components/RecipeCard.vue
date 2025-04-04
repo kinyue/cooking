@@ -55,15 +55,16 @@
         <v-spacer></v-spacer>
         <v-btn icon="mdi-pencil" size="small" variant="text" color="orange-lighten-2" @click.stop="editRecipe"></v-btn>
         <v-btn icon="mdi-delete" size="small" variant="text" color="red-lighten-2" @click.stop="deleteRecipe"></v-btn>
-        <v-btn icon="mdi-plus-box" size="small" variant="text" color="green-lighten-2"></v-btn>
+        <v-btn icon="mdi-plus-box" size="small" variant="text" color="green-lighten-2" @click.stop="addToToday"></v-btn> 
       </v-card-actions>
     </div>
   </v-card>
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
-// import { useRouter } from 'vue-router'; // Import if needed for actions
+import { defineProps, defineEmits } from 'vue'; // Import defineEmits
+import { useRouter } from 'vue-router'; // Import useRouter
+import api from '@/services/api'; // Import api service
 
 const props = defineProps({
   recipe: {
@@ -79,7 +80,8 @@ const props = defineProps({
   }
 });
 
-// const router = useRouter(); // If using router for actions
+const emit = defineEmits(['recipeDeleted', 'addToTodayClicked']); // Define emits
+const router = useRouter(); // Get router instance
 
 // --- Methods ---
 const getTagColor = (tag) => {
@@ -92,17 +94,31 @@ const getTagColor = (tag) => {
 };
 
 const editRecipe = () => {
-  console.log('Edit recipe:', props.recipe.id);
-  // Example: Navigate to edit page
-  // router.push({ name: 'edit-recipe', params: { id: props.recipe.id } });
+  // Navigate to the edit page for this recipe
+  router.push({ name: 'edit-recipe', params: { id: props.recipe.id } });
 };
 
-const deleteRecipe = () => {
-  console.log('Delete recipe:', props.recipe.id);
-  // Example: Show confirmation dialog and call API
-  // if (confirm(`确定要删除菜谱 "${props.recipe.name}" 吗？`)) {
-  //   // Call API to delete
-  // }
+const deleteRecipe = async () => {
+  // Confirm deletion with the user
+  if (window.confirm(`确定要删除菜谱 "${props.recipe.name}" 吗？`)) {
+    try {
+      await api.deleteRecipe(props.recipe.id);
+      // Emit an event to notify the parent component (HomeView)
+      emit('recipeDeleted', props.recipe.id);
+      // Optionally show a local success message or rely on parent's snackbar
+    } catch (error) {
+      console.error(`Failed to delete recipe ${props.recipe.id}:`, error);
+      // Optionally show an error message to the user
+      alert(`删除失败: ${error.response?.data?.description || error.message || '请稍后再试'}`);
+    }
+  }
+};
+
+// Method to handle adding the recipe to today's menu (placeholder)
+const addToToday = () => {
+  console.log('Add to today clicked for recipe:', props.recipe.id);
+  // Emit an event to notify the parent component
+  emit('addToTodayClicked', props.recipe.id);
 };
 </script>
 
