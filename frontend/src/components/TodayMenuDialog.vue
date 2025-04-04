@@ -159,22 +159,39 @@
       <v-divider v-if="menuItems.length > 0"></v-divider>
       
       <v-card-actions v-if="menuItems.length > 0" class="pa-4">
+        <v-btn
+          variant="tonal"
+          color="primary"
+          @click="copyToClipboard"
+          prepend-icon="mdi-content-copy"
+          class="mr-2"
+        >
+          复制清单
+        </v-btn>
+        <v-btn
+          variant="tonal"
+          color="success"
+          @click="exportList"
+          prepend-icon="mdi-file-export-outline"
+        >
+          导出清单
+        </v-btn>
         <v-spacer></v-spacer>
         <v-btn
           variant="outlined"
           color="error"
           @click="confirmClearAll"
-          prepend-icon="mdi-delete-sweep"
+          prepend-icon="mdi-bookmark-remove-multiple"
           class="mr-2"
         >
           清空菜单
         </v-btn>
         <v-btn
           variant="elevated"
-          color="primary"
+          color="error"
           @click="clearChecked"
           :disabled="!hasCheckedItems"
-          prepend-icon="mdi-checkbox-remove"
+          prepend-icon="mdi-delete-sweep"
         >
           移除已选
         </v-btn>
@@ -222,7 +239,63 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['update:modelValue', 'remove', 'clear-all', 'clear-checked']);
+const emit = defineEmits(['update:modelValue', 'remove', 'clear-all', 'clear-checked', 'update:snackbar']);
+
+// Interface for snackbar message
+const showSnackbar = (message, color = 'success') => {
+  emit('update:snackbar', {
+    show: true,
+    text: message,
+    color: color
+  });
+};
+
+// Format list for clipboard and export
+const formatList = () => {
+  let text = '今日菜单\n\n';
+  
+  // Add recipes section
+  text += '【已选菜谱】\n';
+  menuItems.value.forEach((recipe, index) => {
+    text += `${index + 1}. ${recipe.name}\n`;
+  });
+  
+  // Add ingredients section
+  text += '\n【所需食材】\n';
+  aggregatedIngredients.value.forEach((ingredient, index) => {
+    text += `${index + 1}. ${ingredient.name} ${ingredient.quantity}\n`;
+  });
+  
+  return text;
+};
+
+// Copy to clipboard function
+const copyToClipboard = async () => {
+  const text = formatList();
+  try {
+    await navigator.clipboard.writeText(text);
+    emit('update:modelValue', false); // Close dialog
+    showSnackbar('菜单清单已复制到剪贴板');
+  } catch (err) {
+    showSnackbar('复制失败，请重试', 'error');
+  }
+};
+
+// Export function
+const exportList = () => {
+  const text = formatList();
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `今日菜单_${new Date().toLocaleDateString('zh-CN')}.txt`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+  
+  showSnackbar('菜单清单已导出');
+};
 
 // Local state
 const showConfirmDialog = ref(false);
