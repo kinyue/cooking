@@ -198,7 +198,7 @@
 
 <script setup>
 import { ref, watch, computed } from 'vue';
-import { useRouter } from 'vue-router';
+
 
 // Define props and emits for TypeScript support
 const props = defineProps({
@@ -209,7 +209,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['submit', 'cancel']); // Add 'cancel' to emits
-const router = useRouter();
 const form = ref(null); // Template ref for the v-form
 
 const isEditing = computed(() => !!props.initialData);
