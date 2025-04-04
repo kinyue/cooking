@@ -53,7 +53,7 @@
         <RecipeCard
           :recipe="recipe"
           @recipeDeleted="handleRecipeDeleted"
-          @addToTodayClicked="handleAddToToday"
+          v-model:snackbar="snackbar"
         />
       </v-col>
 
@@ -107,23 +107,22 @@
 import { useRoute } from 'vue-router';
 import { ref, onMounted } from 'vue';
 import RecipeCard from '@/components/RecipeCard.vue';
-import RecipeForm from '@/components/RecipeForm.vue'; // Import RecipeForm
+import RecipeForm from '@/components/RecipeForm.vue';
 import api from '@/services/api';
 
 // --- State ---
 const route = useRoute();
-const showAddDialog = ref(false); // State for controlling the add recipe dialog
+const showAddDialog = ref(false);
 const snackbar = ref({
   show: false,
   text: '',
   color: 'success'
 });
-const recommendCount = ref(12); // Default recommendation count
-const countOptions = ref([4, 8, 12, 16, 20, 24]); // Options for the dropdown
-const recipes = ref([]); // Array to hold recipe data
-const loading = ref(false); // Loading state indicator
-const error = ref(null); // Error state holder
-
+const recommendCount = ref(12);
+const countOptions = ref([4, 8, 12, 16, 20, 24]);
+const recipes = ref([]);
+const loading = ref(false);
+const error = ref(null);
 
 // --- Methods ---
 const fetchRecipes = async (count) => {
@@ -136,7 +135,7 @@ const fetchRecipes = async (count) => {
   } catch (err) {
     console.error("Failed to fetch recipes:", err);
     error.value = err;
-    recipes.value = []; // Clear recipes on error
+    recipes.value = [];
   } finally {
     loading.value = false;
   }
@@ -144,28 +143,27 @@ const fetchRecipes = async (count) => {
 
 const startRecommendation = () => {
   console.log(`Starting recommendation with count: ${recommendCount.value}`);
-  fetchRecipes(recommendCount.value); // Re-fetch recipes based on selected count
+  fetchRecipes(recommendCount.value);
 };
 
 // Handler for RecipeForm submission (Add mode)
 const handleAddRecipeSubmit = async (formData) => {
   try {
     const result = await api.createRecipe(formData);
-    showAddDialog.value = false; // Close dialog on success
-    await fetchRecipes(recommendCount.value); // Refresh the list
-    snackbar.value = { // Show success message
+    showAddDialog.value = false;
+    await fetchRecipes(recommendCount.value);
+    snackbar.value = {
       show: true,
       text: `菜谱 "${result.data.name}" 添加成功！`,
       color: 'success'
     };
   } catch (err) {
     console.error("Failed to add recipe:", err);
-    snackbar.value = { // Show error message
+    snackbar.value = {
       show: true,
       text: `添加菜谱失败: ${err.response?.data?.description || err.message || '请稍后再试'}`,
       color: 'error'
     };
-    // Keep dialog open on error
   }
 };
 
@@ -188,23 +186,10 @@ const handleCancelAdd = () => {
   showAddDialog.value = false;
 };
 
-// Placeholder handler for adding recipe to today's menu
-const handleAddToToday = (recipeId) => {
-  const recipe = recipes.value.find(r => r.id === recipeId);
-  console.log(`Add recipe ${recipeId} (${recipe?.name}) to today's menu (Not implemented)`);
-  snackbar.value = {
-    show: true,
-    text: `菜谱 "${recipe?.name || recipeId}" 已添加到今日菜单`,
-    color: 'info' // Use info color for placeholder actions
-  };
-};
-
-
 // --- Lifecycle Hooks ---
 onMounted(() => {
-  fetchRecipes(recommendCount.value); // Fetch initial recipes when component mounts
+  fetchRecipes(recommendCount.value);
   
-  // Check for success message from recipe deletion
   const deletedRecipe = route.query.deletedRecipe;
   if (deletedRecipe) {
     snackbar.value = {
@@ -214,7 +199,6 @@ onMounted(() => {
     };
   }
 });
-
 </script>
 
 <style scoped>

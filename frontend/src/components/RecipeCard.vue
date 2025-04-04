@@ -62,9 +62,10 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue'; // Import defineEmits
-import { useRouter } from 'vue-router'; // Import useRouter
-import api from '@/services/api'; // Import api service
+import { defineProps, defineEmits } from 'vue';
+import { useRouter } from 'vue-router';
+import { useTodayMenuStore } from '@/stores/todayMenu';
+import api from '@/services/api';
 
 const props = defineProps({
   recipe: {
@@ -80,8 +81,9 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['recipeDeleted', 'addToTodayClicked']); // Define emits
-const router = useRouter(); // Get router instance
+const emit = defineEmits(['recipeDeleted']); // Remove 'addToTodayClicked'
+const router = useRouter();
+const todayMenu = useTodayMenuStore();
 
 // --- Methods ---
 const getTagColor = (tag) => {
@@ -114,11 +116,16 @@ const deleteRecipe = async () => {
   }
 };
 
-// Method to handle adding the recipe to today's menu (placeholder)
+// Method to handle adding the recipe to today's menu
 const addToToday = () => {
-  console.log('Add to today clicked for recipe:', props.recipe.id);
-  // Emit an event to notify the parent component
-  emit('addToTodayClicked', props.recipe.id);
+  if (todayMenu.addRecipe(props.recipe)) {
+    // If the recipe was successfully added (wasn't already in the menu)
+    emit('update:snackbar', {
+      show: true,
+      text: `菜谱 "${props.recipe.name}" 已添加到今日菜单`,
+      color: 'success'
+    });
+  }
 };
 </script>
 
