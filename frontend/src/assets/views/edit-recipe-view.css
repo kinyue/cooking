@@ -1,1 +1,45 @@
-/* Add specific styles for EditRecipeView here */
+.edit-recipe-container {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+  transition: all 0.3s ease;
+}
+
+.edit-recipe-header {
+  margin-bottom: 32px;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 16px;
+}
+
+.edit-recipe-title {
+  font-size: 1.75rem !important;
+  color: #2c3e50;
+  letter-spacing: 0.5px;
+}
+
+.loading-container {
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.loading-text {
+  color: #666;
+  font-size: 1rem;
+  margin-top: 8px;
+}
+
+/* Animation for loading state */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}

@@ -1,38 +1,55 @@
 <template>
   <v-container fluid class="pa-5">
     <v-row justify="center">
-      <v-col cols="12" md="8">
-        <h2 class="text-h5 font-weight-medium mb-4">编辑菜谱</h2>
+      <v-col cols="12" md="8" lg="7">
+        <div class="edit-recipe-container">
+          <div class="edit-recipe-header">
+            <h2 class="edit-recipe-title font-weight-medium">
+              <v-icon icon="mdi-pencil" class="mr-2"></v-icon>
+              编辑菜谱
+            </h2>
+          </div>
 
-        <!-- Loading Indicator -->
-        <v-row v-if="loading" justify="center" align="center" style="min-height: 200px;">
-          <v-col cols="12" class="text-center">
-            <v-progress-circular indeterminate color="primary"></v-progress-circular>
-            <p class="mt-2 text-medium-emphasis">加载菜谱数据...</p>
-          </v-col>
-        </v-row>
+          <!-- Loading Indicator -->
+          <v-fade-transition>
+            <div v-if="loading" class="loading-container">
+              <v-progress-circular
+                size="42"
+                width="4"
+                indeterminate
+                color="primary"
+              ></v-progress-circular>
+              <span class="loading-text">加载菜谱数据...</span>
+            </div>
+          </v-fade-transition>
 
-        <!-- Error Message -->
-        <v-row v-else-if="error" justify="center">
-          <v-col cols="12">
-            <v-alert
-              type="error"
-              variant="tonal"
-              title="加载失败"
-              :text="`加载菜谱数据失败: ${error.message || '请稍后重试。'}`"
-              class="mb-4"
-            ></v-alert>
-          </v-col>
-        </v-row>
+          <!-- Error Message -->
+          <v-fade-transition>
+            <div v-if="error">
+              <v-alert
+                type="error"
+                variant="tonal"
+                title="加载失败"
+                :text="`加载菜谱数据失败: ${error.message || '请稍后重试。'}`"
+                class="mb-4"
+                border="start"
+                density="comfortable"
+              ></v-alert>
+            </div>
+          </v-fade-transition>
 
-        <!-- Recipe Form - Render only when data is loaded -->
-        <RecipeForm
-          v-if="recipeData && !loading"
-          formType="edit"
-          :initialData="recipeData"
-          @submit="handleUpdateRecipe"
-          @cancel="goBack"
-        />
+          <!-- Recipe Form - Render only when data is loaded -->
+          <v-fade-transition>
+            <div v-if="recipeData && !loading">
+              <RecipeForm
+                formType="edit"
+                :initialData="recipeData"
+                @submit="handleUpdateRecipe"
+                @cancel="goBack"
+              />
+            </div>
+          </v-fade-transition>
+        </div>
       </v-col>
     </v-row>
   </v-container>
