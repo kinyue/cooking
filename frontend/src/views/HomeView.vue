@@ -84,8 +84,8 @@
 <script setup>
 import { useRoute } from 'vue-router';
 import { ref, onMounted } from 'vue';
-import RecipeCard from '@/components/RecipeCard.vue'; // Import the RecipeCard component
-import api from '@/services/api'; // Import your API service
+import RecipeCard from '@/components/RecipeCard.vue'; 
+import api from '@/services/api'; 
 
 // --- State ---
 const route = useRoute();
@@ -106,12 +106,8 @@ const fetchRecipes = async (count) => {
   loading.value = true;
   error.value = null;
   try {
-    // --- Use Mock Data (Comment out API call) ---
-     // await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-     // recipes.value = mockRecipes.slice(0, count);
-    // --- OR Use API Call (Uncomment below and comment mock data) ---
-    const data = await api.getRecipes({ count: count }); // Assuming API supports count param
-    recipes.value = data.data; // Adjust based on actual API response structure
+    const data = await api.getRecipes({ count: count }); 
+    recipes.value = data.data; 
 
   } catch (err) {
     console.error("Failed to fetch recipes:", err);
