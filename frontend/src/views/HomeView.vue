@@ -72,6 +72,18 @@
           <p>暂无推荐菜谱。</p>
       </v-col>
     </v-row>
+
+    <!-- Pagination Controls -->
+    <v-row v-if="!loading && !error && totalPages > 1" justify="center" class="pagination-row">
+      <v-col cols="auto">
+        <v-pagination
+          v-model="currentPage"
+          :length="totalPages"
+          :total-visible="7" 
+          rounded="circle"
+        ></v-pagination>
+      </v-col>
+    </v-row>
   </v-container>
 
   <!-- Global Snackbar -->
@@ -105,7 +117,7 @@
 
 <script setup>
 import { useRoute } from 'vue-router';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue'; // Import watch
 import RecipeCard from '@/components/RecipeCard.vue';
 import RecipeForm from '@/components/RecipeForm.vue';
 import api from '@/services/api';
@@ -124,18 +136,32 @@ const recipes = ref([]);
 const loading = ref(false);
 const error = ref(null);
 
+// --- Pagination State ---
+const itemsPerPage = 8; // Items per page
+const currentPage = ref(1);
+const totalPages = ref(1);
+
 // --- Methods ---
-const fetchRecipes = async () => {
+const fetchRecipes = async (page = 1) => {
   loading.value = true;
   error.value = null;
   try {
-    const data = await api.getRecipes(); 
-    recipes.value = data.data; 
-
+    // Pass page and limit to the API call
+    const response = await api.getRecipes({ page: page, limit: itemsPerPage });
+    recipes.value = response.data; // The list of recipes for the current page
+    // Update pagination state from the response
+    if (response.pagination) {
+      currentPage.value = response.pagination.current_page;
+      totalPages.value = response.pagination.total_pages;
+    } else {
+      // Handle case where pagination info might be missing (e.g., error or older API version)
+      totalPages.value = 1; // Default to 1 page if pagination info is absent
+    }
   } catch (err) {
     console.error("Failed to fetch recipes:", err);
     error.value = err;
     recipes.value = [];
+    totalPages.value = 1; // Reset pages on error
   } finally {
     loading.value = false;
   }
@@ -153,7 +179,8 @@ const handleAddRecipeSubmit = async (formData) => {
   try {
     const result = await api.createRecipe(formData);
     showAddDialog.value = false;
-    await fetchRecipes();
+    // Fetch the first page after adding a new recipe
+    await fetchRecipes(1);
     snackbar.value = {
       show: true,
       text: `菜谱 "${result.data.name}" 添加成功！`,
@@ -170,17 +197,24 @@ const handleAddRecipeSubmit = async (formData) => {
 };
 
 // Handler for recipe deletion from RecipeCard
-const handleRecipeDeleted = (recipeId) => {
-  const index = recipes.value.findIndex(r => r.id === recipeId);
-  if (index !== -1) {
-    const deletedRecipeName = recipes.value[index].name;
-    recipes.value.splice(index, 1);
-    snackbar.value = {
-      show: true,
-      text: `菜谱 "${deletedRecipeName}" 已删除`,
-      color: 'success'
-    };
-  }
+const handleRecipeDeleted = async (recipeId) => {
+  // After deletion, refetch the current page to reflect changes
+  // This handles cases where deleting the last item on a page should potentially move to the previous page,
+  // or just refresh the current view. Fetching the current page number is simplest.
+  // We might need the name for the snackbar *before* refetching.
+  const deletedRecipe = recipes.value.find(r => r.id === recipeId);
+  const deletedRecipeName = deletedRecipe ? deletedRecipe.name : '该菜谱';
+
+  await fetchRecipes(currentPage.value);
+
+  // Show snackbar confirmation (assuming the child component doesn't already do this via v-model)
+  // If the child component handles the snackbar via v-model:snackbar, this might be redundant.
+  // Let's keep it for now, assuming HomeView manages its own snackbar state upon deletion confirmation.
+  snackbar.value = {
+    show: true,
+    text: `菜谱 "${deletedRecipeName}" 已删除`,
+    color: 'success'
+  };
 };
 
 // Handler for canceling the add recipe dialog
@@ -188,10 +222,21 @@ const handleCancelAdd = () => {
   showAddDialog.value = false;
 };
 
+// --- Watchers ---
+// Watch for changes in the current page and fetch new data
+watch(currentPage, (newPage, oldPage) => {
+  // Avoid fetching again if the page number hasn't actually changed
+  // This can happen during initial setup or if the value is programmatically set without a real change
+  if (newPage !== oldPage) {
+     fetchRecipes(newPage);
+  }
+});
+
 // --- Lifecycle Hooks ---
 onMounted(() => {
-  fetchRecipes();
-  
+  // Fetch the first page on component mount
+  fetchRecipes(1);
+
   const deletedRecipe = route.query.deletedRecipe;
   if (deletedRecipe) {
     snackbar.value = {
@@ -205,4 +250,8 @@ onMounted(() => {
 
 <style scoped>
 @import '@/assets/views/home-view.css';
+
+.pagination-row {
+  margin-top: 20px; /* Add some space above the pagination */
+}
 </style>

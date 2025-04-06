@@ -4,6 +4,7 @@ from flask import Blueprint, jsonify, request, abort
 from ..models import recipe as db_recipe # Import database functions
 
 bp = Blueprint('recipes', __name__, url_prefix='/api/recipes')
+limit_per_page = 8 # Default limit for pagination
 
 @bp.route('/', methods=['GET'])
 def get_recipes():
@@ -16,24 +17,44 @@ def get_recipes():
         'cuisine': request.args.get('cuisine'),
         'sort': request.args.get('sort'),
         'order': request.args.get('order'),
-        # Add pagination params if needed:
-        # 'page': request.args.get('page', 1, type=int),
-        # 'limit': request.args.get('limit', 10, type=int),
+        # Add pagination params:
+        'page': request.args.get('page', 1, type=int),
+        'limit': request.args.get('limit', limit_per_page, type=int), # Default limit to 8 per page
     }
+    # Ensure limit is positive
+    if filters['limit'] <= 0:
+        filters['limit'] = limit_per_page
+    # Ensure page is positive
+    if filters['page'] <= 0:
+        filters['page'] = 1
+
     # Remove None values so db function doesn't process them unnecessarily
-    filters = {k: v for k, v in filters.items() if v is not None}
+    # Keep pagination params even if they are default
+    active_filters = {k: v for k, v in filters.items() if v is not None and k not in ['page', 'limit']}
 
     try:
-        recipes = db_recipe.get_all_recipes(filters=filters)
-        # Basic pagination structure (if implemented in db_recipe)
-        # return jsonify({
-        #     "data": recipes,
-        #     "pagination": { ... }
-        # })
-        return jsonify({"data": recipes})
+        # Assuming db_recipe.get_all_recipes is updated to handle pagination
+        # and returns a tuple: (list_of_recipes_for_page, total_item_count)
+        recipes_page, total_items = db_recipe.get_all_recipes(
+            filters=active_filters,
+            page=filters['page'],
+            limit=filters['limit']
+        )
+
+        total_pages = (total_items + filters['limit'] - 1) // filters['limit'] # Calculate total pages
+
+        return jsonify({
+            "data": recipes_page,
+            "pagination": {
+                "total_items": total_items,
+                "total_pages": total_pages,
+                "current_page": filters['page'],
+                "per_page": filters['limit']
+            }
+        })
     except Exception as e:
         # Log the error in a real application
-        print(f"Error fetching recipes: {e}")
+        print(f"Error fetching recipes with pagination: {e}")
         abort(500, description="Internal server error fetching recipes.")
 
 
