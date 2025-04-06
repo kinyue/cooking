@@ -2,8 +2,9 @@
 .app-header {
   min-height: 72px !important;
   padding: 8px 0 !important;
-  background: linear-gradient(135deg, var(--v-theme-primary) 0%, var(--v-theme-primary-darken-1) 100%) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
+  background: rgb(var(--v-theme-surface)) !important;
+  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.12) !important;
+  backdrop-filter: blur(8px) !important;
 }
 
 .app-logo {
