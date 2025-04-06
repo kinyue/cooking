@@ -148,7 +148,8 @@
                 </template>
                 <v-list-item-title>
                   {{ ingredient.name }}
-                  <span class="text-grey ml-2">{{ ingredient.quantity }}</span>
+                  <!-- Display count instead of quantity -->
+                  <span class="text-grey ml-2">x{{ ingredient.count }}</span> 
                 </v-list-item-title>
               </v-list-item>
             </v-list>
@@ -260,12 +261,12 @@ const formatList = () => {
     text += `- ${recipe.name}\n`;
   });
   
-  // Add ingredients section with TODO format
+  // Add ingredients section with TODO format, using the new count
   text += '\n## 所需食材\n\n';
   aggregatedIngredients.value.forEach((ingredient) => {
-    text += `- [ ] ${ingredient.name} - *${ingredient.quantity}*\n`;
+    text += `- [ ] ${ingredient.name} (x${ingredient.count})\n`; // Display count here too
   });
-  
+
   text += '\n---\n'; // Add horizontal rule at the end
   text += `*导出时间：${new Date().toLocaleString('zh-CN')}*`; // Add timestamp
   
@@ -325,26 +326,23 @@ const allIngredientsChecked = computed(() => {
 });
 
 const aggregatedIngredients = computed(() => {
-  const ingredientMap = new Map();
+  const ingredientCountMap = new Map(); // Map to store ingredient name -> count
 
   menuItems.value.forEach(recipe => {
-    recipe.ingredients.forEach(ing => {
-      const key = ing.name;
-      if (!ingredientMap.has(key)) {
-        ingredientMap.set(key, {
-          name: ing.name,
-          quantities: [],
-          checked: false
-        });
-      }
-      ingredientMap.get(key).quantities.push(ing.quantity);
+    // Use a Set to count each ingredient only once per recipe
+    const uniqueIngredientsInRecipe = new Set(recipe.ingredients.map(ing => ing.name));
+
+    uniqueIngredientsInRecipe.forEach(ingredientName => {
+      // Increment the count for this ingredient name
+      ingredientCountMap.set(ingredientName, (ingredientCountMap.get(ingredientName) || 0) + 1);
     });
   });
 
-  return Array.from(ingredientMap.values()).map(ing => ({
-    name: ing.name,
-    quantity: ing.quantities.join('、'),
-    checked: ing.checked
+  // Convert the map to the desired array format for the template
+  return Array.from(ingredientCountMap.entries()).map(([name, count]) => ({
+    name: name,
+    count: count, // Store the count
+    checked: false // Keep the checked state logic if needed for checkboxes
   }));
 });
 
