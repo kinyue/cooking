@@ -101,7 +101,8 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['recipeDeleted']); // Remove 'addToTodayClicked'
+// Include 'update:snackbar' in emits
+const emit = defineEmits(['recipeDeleted', 'update:snackbar']);
 const router = useRouter();
 const todayMenu = useTodayMenuStore();
 
@@ -136,11 +137,14 @@ const handleConfirmDelete = async () => {
     // Optionally show a local success message or rely on parent's snackbar
   } catch (error) {
     console.error(`Failed to delete recipe ${props.recipe.id}:`, error);
-    // Optionally show an error message to the user
-    // Consider using a more robust notification system than alert in a real app
-    alert(`删除失败: ${error.response?.data?.description || error.message || '请稍后再试'}`);
-    // Keep dialog open on error? Or close? Let's close it for now.
-    showDeleteDialog.value = false;
+    // Emit snackbar update on error
+    emit('update:snackbar', {
+      show: true,
+      text: `删除菜谱 "${props.recipe.name}" 失败: ${error.response?.data?.description || error.message || '请稍后再试'}`,
+      color: 'error',
+      timeout: 3000 // Or use a default timeout from parent
+    });
+    showDeleteDialog.value = false; // Close dialog even on error
   } finally {
     isDeleting.value = false;
   }
