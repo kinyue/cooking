@@ -48,7 +48,7 @@
       </v-badge>
     </v-btn>
 
-    <v-menu offset-y>
+    <!-- <v-menu offset-y>
       <template v-slot:activator="{ props }">
         <v-btn text v-bind="props" class="user-menu-button ml-2 mr-2">
           <v-avatar color="primary" size="32" class="mr-2">
@@ -79,7 +79,7 @@
           <v-list-item-title class="text-error">退出登录</v-list-item-title>
         </v-list-item>
       </v-list>
-    </v-menu>
+    </v-menu> -->
 
     <!-- Today's Menu Dialog -->
     <TodayMenuDialog
