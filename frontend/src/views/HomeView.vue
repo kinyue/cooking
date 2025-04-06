@@ -5,7 +5,7 @@
         <h1 class="text-h5 font-weight-medium">推荐菜谱</h1>
       </v-col>
       <v-spacer></v-spacer>
-      <v-col cols="6" sm="3" md="2">
+      <!-- <v-col cols="6" sm="3" md="2">
         <v-select
           v-model="recommendCount"
           :items="countOptions"
@@ -14,15 +14,15 @@
           variant="outlined"
           hide-details
         ></v-select>
-      </v-col>
-      <v-col cols="6" sm="auto">
+      </v-col> -->
+      <!-- <v-col cols="6" sm="auto">
         <v-btn color="primary" @click="startRecommendation" size="large">
           <v-icon left icon="mdi-play-circle-outline" class="mr-1"></v-icon>
           开始推荐
         </v-btn>
-      </v-col>
+      </v-col> -->
       <v-col cols="6" sm="auto">
-        <v-btn color="secondary" @click="showAddDialog = true" size="large">
+        <v-btn color="primary" @click="showAddDialog = true" size="large">
           <v-icon left icon="mdi-plus-circle-outline" class="mr-1"></v-icon>
           添加菜谱
         </v-btn>
@@ -112,14 +112,15 @@ import api from '@/services/api';
 
 // --- State ---
 const route = useRoute();
+const defaultCount = 12; // Default number of recipes to fetch
 const showAddDialog = ref(false);
 const snackbar = ref({
   show: false,
   text: '',
   color: 'success'
 });
-const recommendCount = ref(12);
-const countOptions = ref([4, 8, 12, 16, 20, 24]);
+// const recommendCount = ref(12);
+// const countOptions = ref([4, 8, 12, 16, 20, 24]);
 const recipes = ref([]);
 const loading = ref(false);
 const error = ref(null);
@@ -141,17 +142,19 @@ const fetchRecipes = async (count) => {
   }
 };
 
-const startRecommendation = () => {
-  console.log(`Starting recommendation with count: ${recommendCount.value}`);
-  fetchRecipes(recommendCount.value);
-};
+
+// const startRecommendation = () => {
+  // console.log(`Starting recommendation with count: ${recommendCount.value}`);
+  // fetchRecipes(recommendCount.value);
+// };
+
 
 // Handler for RecipeForm submission (Add mode)
 const handleAddRecipeSubmit = async (formData) => {
   try {
     const result = await api.createRecipe(formData);
     showAddDialog.value = false;
-    await fetchRecipes(recommendCount.value);
+    await fetchRecipes(defaultCount);
     snackbar.value = {
       show: true,
       text: `菜谱 "${result.data.name}" 添加成功！`,
@@ -188,7 +191,7 @@ const handleCancelAdd = () => {
 
 // --- Lifecycle Hooks ---
 onMounted(() => {
-  fetchRecipes(recommendCount.value);
+  fetchRecipes(defaultCount);
   
   const deletedRecipe = route.query.deletedRecipe;
   if (deletedRecipe) {
