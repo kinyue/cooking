@@ -1,26 +1,26 @@
 <template>
-  <v-app-bar app color="surface" flat density="comfortable" class="app-header">
+  <v-app-bar app color="primary" flat class="app-header">
     <router-link to="/" class="d-flex align-center text-decoration-none">
       <v-img
         src="@/assets/logo.png"
-        max-height="40"
-        max-width="40"
+        max-height="48"
+        max-width="48"
         contain
-        class="ml-4 mr-2 app-logo"
+        class="ml-4 mr-3 app-logo"
         alt="App Logo"
       ></v-img>
       <div class="app-title">
-        <span class="font-weight-bold text-h6 text-primary">美味秘籍</span>
+        <span class="font-weight-bold text-h5 text-white">美味秘籍</span>
       </div>
     </router-link>
 
     <v-spacer></v-spacer>
 
     <!-- Use icon buttons directly on larger screens now -->
-    <v-btn icon to="/random" class="header-button d-none d-sm-flex">
+    <v-btn icon to="/random" class="header-button d-none d-sm-flex" color="white">
       <v-icon>mdi-dice-5-outline</v-icon>
     </v-btn>
-    <v-btn icon @click="showMenuDialog = true" class="header-button d-none d-sm-flex">
+    <v-btn icon @click="showMenuDialog = true" class="header-button d-none d-sm-flex" color="white">
       <v-badge
         :content="todayMenu.count" 
         :model-value="todayMenu.count > 0"
@@ -33,10 +33,10 @@
     </v-btn>
 
     <!-- Buttons for smaller screens -->
-    <v-btn icon to="/random" class="d-sm-none mx-1">
+    <v-btn icon to="/random" class="d-sm-none mx-1" color="white">
       <v-icon>mdi-dice-5-outline</v-icon>
     </v-btn>
-    <v-btn icon @click="showMenuDialog = true" class="d-sm-none mx-1">
+    <v-btn icon @click="showMenuDialog = true" class="d-sm-none mx-1" color="white">
       <v-badge
         :content="todayMenu.count" 
         :model-value="todayMenu.count > 0"

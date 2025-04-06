@@ -1,24 +1,38 @@
 /* Styles for AppHeader.vue */
 .app-header {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important; /* Add a subtle border */
+  min-height: 72px !important;
+  padding: 8px 0 !important;
+  background: linear-gradient(135deg, var(--v-theme-primary) 0%, var(--v-theme-primary-darken-1) 100%) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
 }
 
 .app-logo {
-  cursor: pointer; /* Indicate logo is clickable */
-  display: block; /* Ensure proper image rendering */
-  width: 40px; /* Fixed width matching max-width */
-  height: 40px; /* Fixed height matching max-height */
+  cursor: pointer;
+  display: block;
+  width: 48px;
+  height: 48px;
+  filter: brightness(0) invert(1); /* Make logo white */
+  transition: transform 0.3s ease;
+}
+
+.app-logo:hover {
+  transform: scale(1.05);
 }
 
 .app-title {
   flex-grow: 0;
-  flex-shrink: 0; /* Prevent title shrinking */
-  white-space: nowrap; /* Prevent text wrapping */
+  flex-shrink: 0;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
 }
 
 .header-button {
-  /* Adjusted margin for icon buttons */
-  margin: 0 8px; /* Increased horizontal margin */
+  margin: 0 12px;
+  transition: transform 0.2s ease !important;
+}
+
+.header-button:hover {
+  transform: scale(1.1);
 }
 
 .user-menu-button {
