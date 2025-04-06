@@ -79,8 +79,12 @@
         <v-pagination
           v-model="currentPage"
           :length="totalPages"
-          :total-visible="7" 
+          :total-visible="$vuetify.display.mdAndUp ? 7 : 3"
+          density="comfortable"
           rounded="circle"
+          active-color="primary"
+          size="large"
+          class="custom-pagination"
         ></v-pagination>
       </v-col>
     </v-row>
@@ -252,6 +256,62 @@ onMounted(() => {
 @import '@/assets/views/home-view.css';
 
 .pagination-row {
-  margin-top: 20px; /* Add some space above the pagination */
+  margin-top: 32px;
+  margin-bottom: 16px;
+}
+
+/* Custom styles for pagination buttons */
+:deep(.custom-pagination) {
+  .v-pagination__item {
+    font-weight: 500;
+    min-width: 40px;
+    height: 40px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: currentColor;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    
+    &--active {
+      font-weight: 600;
+      transform: scale(1.1);
+      box-shadow: 0 2px 8px rgba(var(--v-theme-primary), 0.25);
+    }
+
+    &:not(.v-pagination__item--active):hover {
+      background: rgba(var(--v-theme-primary), 0.05);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 600px) {
+    .v-pagination__item {
+      min-width: 36px;
+      height: 36px;
+      margin: 0 2px;
+    }
+  }
+
+  /* Navigation arrows */
+  .v-pagination__prev,
+  .v-pagination__next {
+    transition: transform 0.2s ease;
+    
+    &:hover {
+      transform: scale(1.1);
+    }
+  }
 }
 </style>
