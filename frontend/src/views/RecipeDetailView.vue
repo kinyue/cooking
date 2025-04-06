@@ -291,13 +291,6 @@ export default {
       }
     },
   },
-  // Computed property is no longer needed as todayMenu is returned from setup
-  // computed: {
-  //   // Expose todayMenu store to the template for easier access
-  //   todayMenu() {
-  //     return todayMenu;
-  //   }
-  // }
 };
 </script>
 

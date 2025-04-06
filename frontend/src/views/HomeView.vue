@@ -64,8 +64,6 @@ const snackbar = ref({
   text: '',
   color: 'success'
 });
-// const recommendCount = ref(12);
-// const countOptions = ref([4, 8, 12, 16, 20, 24]);
 const recipes = ref([]);
 const loading = ref(false);
 const error = ref(null);
