@@ -112,7 +112,6 @@ import api from '@/services/api';
 
 // --- State ---
 const route = useRoute();
-const defaultCount = 12; // Default number of recipes to fetch
 const showAddDialog = ref(false);
 const snackbar = ref({
   show: false,
@@ -126,11 +125,11 @@ const loading = ref(false);
 const error = ref(null);
 
 // --- Methods ---
-const fetchRecipes = async (count) => {
+const fetchRecipes = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const data = await api.getRecipes({ count: count }); 
+    const data = await api.getRecipes(); 
     recipes.value = data.data; 
 
   } catch (err) {
@@ -154,7 +153,7 @@ const handleAddRecipeSubmit = async (formData) => {
   try {
     const result = await api.createRecipe(formData);
     showAddDialog.value = false;
-    await fetchRecipes(defaultCount);
+    await fetchRecipes();
     snackbar.value = {
       show: true,
       text: `菜谱 "${result.data.name}" 添加成功！`,
@@ -191,7 +190,7 @@ const handleCancelAdd = () => {
 
 // --- Lifecycle Hooks ---
 onMounted(() => {
-  fetchRecipes(defaultCount);
+  fetchRecipes();
   
   const deletedRecipe = route.query.deletedRecipe;
   if (deletedRecipe) {
