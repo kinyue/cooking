@@ -187,9 +187,9 @@ const handleAddRecipeSubmit = async (formData) => {
       color: 'success',
       timeout: 3000
     };
-    // Navigate to the new recipe's detail page
-    router.push({ name: 'recipe-detail', params: { id: result.data.id } });
-    // Note: HomeView list won't auto-refresh unless navigated back or refreshed manually.
+    // Navigate back to the home page with a query param to trigger refresh
+    // Using Date.now() ensures the query value changes each time, reliably triggering watchers
+    router.push({ path: '/', query: { added: Date.now() } }); 
   } catch (err) {
     console.error("Failed to add recipe:", err);
     // Show error snackbar

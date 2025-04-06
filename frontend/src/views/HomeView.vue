@@ -52,13 +52,14 @@
 </template>
 
 <script setup>
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router'; // Import useRouter
 import { ref, onMounted, watch } from 'vue'; // Import watch
 import RecipeCard from '@/components/RecipeCard.vue';
 import api from '@/services/api';
 
 // --- State ---
-const route = useRoute();
+const route = useRoute(); // Re-add route instance
+const router = useRouter(); 
 const snackbar = ref({
   show: false,
   text: '',
@@ -130,15 +131,26 @@ watch(currentPage, (newPage, oldPage) => {
   // This can happen during initial setup or if the value is programmatically set without a real change
   if (newPage !== oldPage) {
     fetchRecipes(newPage);
-  }
-});
-
-// --- Lifecycle Hooks ---
-onMounted(() => {
-  // Fetch the first page on component mount
-  fetchRecipes(1);
-
-  const deletedRecipe = route.query.deletedRecipe;
+   }
+ });
+ 
+ // Watch for the 'added' query parameter to refresh the list
+ watch(() => route.query.added, (newVal) => {
+   if (newVal) {
+     fetchRecipes(1); // Refresh the first page
+     // Create a copy of the current query, remove 'added', then replace
+     const query = { ...route.query };
+     delete query.added;
+     router.replace({ query });
+   }
+ }, { immediate: false }); // Don't run immediately on mount
+ 
+ // --- Lifecycle Hooks ---
+ onMounted(() => {
+   // Fetch the first page on component mount
+   fetchRecipes(1);
+ 
+   const deletedRecipe = route.query.deletedRecipe;
   if (deletedRecipe) {
     snackbar.value = {
       show: true,
