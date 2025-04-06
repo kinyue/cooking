@@ -344,15 +344,24 @@ const aggregatedIngredients = computed(() => {
 
   // Determine the final checked state based on manual overrides
   return Array.from(ingredientCountMap.entries()).map(([name, count]) => {
-    let isChecked;
-    if (todayMenu.manuallyUncheckedIngredients.has(name)) {
-      isChecked = false; // Manually unchecked overrides everything
-    } else if (todayMenu.manuallyCheckedIngredients.has(name)) {
-      isChecked = true; // Manually checked
-    } else {
-      isChecked = true; // Default to checked if derived from selected recipes
+    let isChecked = true; // Default to checked
+
+    // Add extra safety check for todayMenu instance and ensure .value is a Set
+    if (todayMenu && todayMenu.manuallyUncheckedIngredients && todayMenu.manuallyCheckedIngredients) {
+      const manuallyUncheckedSet = todayMenu.manuallyUncheckedIngredients.value;
+      const manuallyCheckedSet = todayMenu.manuallyCheckedIngredients.value;
+
+      // Check if the Sets themselves are valid Set instances before calling .has()
+      if (manuallyUncheckedSet instanceof Set && manuallyUncheckedSet.has(name)) {
+        isChecked = false; // Manually unchecked overrides everything
+      } else if (manuallyCheckedSet instanceof Set && manuallyCheckedSet.has(name)) {
+        isChecked = true; // Manually checked (explicitly setting, though default is true)
+      }
+      // If neither manual set overrides, isChecked remains true (the default)
     }
-    return {
+    // Removed redundant comment and duplicate return statement below
+    
+    return { // Only one return statement needed inside map
       name: name,
       count: count,
       checked: isChecked // Final checked state
