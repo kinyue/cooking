@@ -141,7 +141,8 @@
               >
                 <template v-slot:prepend>
                   <v-checkbox-btn
-                    v-model="ingredient.checked"
+                    :model-value="ingredient.checked" 
+                    @update:modelValue="todayMenu.toggleManualIngredientCheck(ingredient.name, ingredient.checked)"
                     color="success"
                     density="comfortable"
                   ></v-checkbox-btn>
@@ -230,6 +231,9 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+import { useTodayMenuStore } from '@/stores/todayMenu'; // Import the store
+
+const todayMenu = useTodayMenuStore(); // Instantiate the store
 
 // Props and Emits
 const props = defineProps({
@@ -312,8 +316,8 @@ const menuItems = computed(() => props.items);
 
 // Computed properties
 const hasCheckedItems = computed(() => {
-  return menuItems.value.some(item => item.checked) ||
-         aggregatedIngredients.value.some(ing => ing.checked);
+  // Use the getter from the store now
+  return todayMenu.hasAnyCheckedItems; 
 });
 
 const allRecipesChecked = computed(() => {
@@ -321,29 +325,39 @@ const allRecipesChecked = computed(() => {
 });
 
 const allIngredientsChecked = computed(() => {
-  return aggregatedIngredients.value.length > 0 && 
+  // Check if the aggregated list is not empty and every item in it is considered checked
+  return aggregatedIngredients.value.length > 0 &&
          aggregatedIngredients.value.every(ing => ing.checked);
 });
 
+// --- Aggregated Ingredients Logic ---
 const aggregatedIngredients = computed(() => {
-  const ingredientCountMap = new Map(); // Map to store ingredient name -> count
+  const ingredientCountMap = new Map();
 
-  menuItems.value.forEach(recipe => {
-    // Use a Set to count each ingredient only once per recipe
+  // Only consider ingredients from CHECKED recipes
+  menuItems.value.filter(recipe => recipe.checked).forEach(recipe => {
     const uniqueIngredientsInRecipe = new Set(recipe.ingredients.map(ing => ing.name));
-
     uniqueIngredientsInRecipe.forEach(ingredientName => {
-      // Increment the count for this ingredient name
       ingredientCountMap.set(ingredientName, (ingredientCountMap.get(ingredientName) || 0) + 1);
     });
   });
 
-  // Convert the map to the desired array format for the template
-  return Array.from(ingredientCountMap.entries()).map(([name, count]) => ({
-    name: name,
-    count: count, // Store the count
-    checked: false // Keep the checked state logic if needed for checkboxes
-  }));
+  // Determine the final checked state based on manual overrides
+  return Array.from(ingredientCountMap.entries()).map(([name, count]) => {
+    let isChecked;
+    if (todayMenu.manuallyUncheckedIngredients.has(name)) {
+      isChecked = false; // Manually unchecked overrides everything
+    } else if (todayMenu.manuallyCheckedIngredients.has(name)) {
+      isChecked = true; // Manually checked
+    } else {
+      isChecked = true; // Default to checked if derived from selected recipes
+    }
+    return {
+      name: name,
+      count: count,
+      checked: isChecked // Final checked state
+    };
+  });
 });
 
 // Methods
@@ -376,10 +390,18 @@ const toggleAllRecipes = () => {
 };
 
 const toggleAllIngredients = () => {
-  const newState = !allIngredientsChecked.value;
-  aggregatedIngredients.value.forEach(ingredient => {
-    ingredient.checked = newState;
-  });
+  const shouldCheck = !allIngredientsChecked.value; // Determine the target state
+  // Get all currently displayed ingredient names
+  const currentIngredientNames = aggregatedIngredients.value.map(ing => ing.name);
+  // Call the store action to bulk update the manual check state for these ingredients
+  todayMenu.toggleAllIngredientsCheck(shouldCheck, currentIngredientNames); 
+  // Note: We might need to adjust the store action `toggleAllIngredientsCheck` 
+  // to accept the list of names to toggle, or implement the logic here.
+  // Let's assume for now the store action handles this based on `shouldCheck`.
+  // A more direct approach might be:
+  // currentIngredientNames.forEach(name => {
+  //   todayMenu.toggleManualIngredientCheck(name, !shouldCheck); // Pass the *opposite* of target state
+  // });
 };
 </script>
 
