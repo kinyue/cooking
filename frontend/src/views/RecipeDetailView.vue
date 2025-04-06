@@ -183,7 +183,6 @@ import { getRecipeById, deleteRecipe } from '@/services/api';
 import DeleteConfirmation from '@/components/DeleteConfirmation.vue'; // Import the component
 import { useTodayMenuStore } from '@/stores/todayMenu'; // Import the store
 
-const todayMenu = useTodayMenuStore(); // Instantiate the store
 
 export default {
   name: 'RecipeDetailView',
@@ -210,7 +209,8 @@ export default {
   setup() {
     const route = useRoute();
     const router = useRouter();
-    return { route, router };
+    const todayMenu = useTodayMenuStore(); // Instantiate the store inside setup
+    return { route, router, todayMenu }; // Return todayMenu
   },
   mounted() {
     this.fetchRecipeDetails();
@@ -269,7 +269,8 @@ export default {
     addToToday() {
       if (!this.recipe) return; // Guard against missing recipe data
 
-      if (todayMenu.addRecipe(this.recipe)) {
+      // Access store via this.todayMenu now
+      if (this.todayMenu.addRecipe(this.recipe)) { 
         // If the recipe was successfully added (wasn't already in the menu)
         this.snackbar = {
           show: true,
@@ -290,12 +291,13 @@ export default {
       }
     },
   },
-  computed: {
-    // Expose todayMenu store to the template for easier access
-    todayMenu() {
-      return todayMenu;
-    }
-  }
+  // Computed property is no longer needed as todayMenu is returned from setup
+  // computed: {
+  //   // Expose todayMenu store to the template for easier access
+  //   todayMenu() {
+  //     return todayMenu;
+  //   }
+  // }
 };
 </script>
 
