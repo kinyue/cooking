@@ -111,6 +111,14 @@
             <v-spacer></v-spacer>
             <v-btn icon="mdi-pencil" size="small" variant="text" color="orange-lighten-2" @click.stop="editRecipe"></v-btn>
             <v-btn icon="mdi-delete" size="small" variant="text" color="red-lighten-2" @click.stop="deleteRecipe"></v-btn>
+            <v-btn 
+              icon="mdi-plus-box" 
+              size="small" 
+              variant="text" 
+              :color="todayMenu.hasRecipe(recipe.id) ? 'grey' : 'green-lighten-2'" 
+              :disabled="todayMenu.hasRecipe(recipe.id)"
+              @click.stop="addToToday"
+            ></v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
@@ -173,6 +181,9 @@
 import { useRoute, useRouter } from 'vue-router';
 import { getRecipeById, deleteRecipe } from '@/services/api';
 import DeleteConfirmation from '@/components/DeleteConfirmation.vue'; // Import the component
+import { useTodayMenuStore } from '@/stores/todayMenu'; // Import the store
+
+const todayMenu = useTodayMenuStore(); // Instantiate the store
 
 export default {
   name: 'RecipeDetailView',
@@ -254,7 +265,37 @@ export default {
         this.dialog.loading = false;
       }
     },
+    // Method to add the current recipe to today's menu
+    addToToday() {
+      if (!this.recipe) return; // Guard against missing recipe data
+
+      if (todayMenu.addRecipe(this.recipe)) {
+        // If the recipe was successfully added (wasn't already in the menu)
+        this.snackbar = {
+          show: true,
+          text: `菜谱 "${this.recipe.name}" 已添加到今日菜单`,
+          color: 'success',
+          timeout: 3000
+        };
+        // Optionally, force re-render if button state doesn't update automatically
+        // this.$forceUpdate(); 
+      } else {
+        // Handle case where recipe might already be in the menu (optional feedback)
+        this.snackbar = {
+          show: true,
+          text: `菜谱 "${this.recipe.name}" 已在今日菜单中`,
+          color: 'info', // Use info color for existing items
+          timeout: 3000
+        };
+      }
+    },
   },
+  computed: {
+    // Expose todayMenu store to the template for easier access
+    todayMenu() {
+      return todayMenu;
+    }
+  }
 };
 </script>
 
