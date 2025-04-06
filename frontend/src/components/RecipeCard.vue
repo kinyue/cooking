@@ -62,17 +62,30 @@
           :color="todayMenu.hasRecipe(recipe.id) ? 'grey' : 'green-lighten-2'" 
           :disabled="todayMenu.hasRecipe(recipe.id)"
           @click.stop="addToToday"
-        ></v-btn> 
+        ></v-btn>
       </v-card-actions>
     </div>
   </v-card>
+
+  <!-- Reusable Delete Confirmation Dialog -->
+  <DeleteConfirmation
+    v-model="showDeleteDialog"
+    :recipe="props.recipe"
+    :loading="isDeleting"
+    @confirm="handleConfirmDelete"
+  />
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue';
+import { ref, defineProps, defineEmits } from 'vue'; // Import ref
 import { useRouter } from 'vue-router';
 import { useTodayMenuStore } from '@/stores/todayMenu';
 import api from '@/services/api';
+import DeleteConfirmation from '@/components/DeleteConfirmation.vue'; // Import the component
+
+// --- State ---
+const showDeleteDialog = ref(false);
+const isDeleting = ref(false);
 
 const props = defineProps({
   recipe: {
@@ -107,23 +120,33 @@ const editRecipe = () => {
   router.push({ name: 'edit-recipe', params: { id: props.recipe.id } });
 };
 
-const deleteRecipe = async () => {
-  // Confirm deletion with the user
-  if (window.confirm(`确定要删除菜谱 "${props.recipe.name}" 吗？`)) {
-    try {
-      await api.deleteRecipe(props.recipe.id);
-      // Emit an event to notify the parent component (HomeView)
-      emit('recipeDeleted', props.recipe.id);
-      // Optionally show a local success message or rely on parent's snackbar
-    } catch (error) {
-      console.error(`Failed to delete recipe ${props.recipe.id}:`, error);
-      // Optionally show an error message to the user
-      alert(`删除失败: ${error.response?.data?.description || error.message || '请稍后再试'}`);
-    }
+// --- Delete Logic ---
+const deleteRecipe = () => {
+  // Show the confirmation dialog instead of window.confirm
+  showDeleteDialog.value = true;
+};
+
+const handleConfirmDelete = async () => {
+  isDeleting.value = true;
+  try {
+    await api.deleteRecipe(props.recipe.id);
+    // Emit an event to notify the parent component (HomeView)
+    emit('recipeDeleted', props.recipe.id);
+    showDeleteDialog.value = false; // Close dialog on success
+    // Optionally show a local success message or rely on parent's snackbar
+  } catch (error) {
+    console.error(`Failed to delete recipe ${props.recipe.id}:`, error);
+    // Optionally show an error message to the user
+    // Consider using a more robust notification system than alert in a real app
+    alert(`删除失败: ${error.response?.data?.description || error.message || '请稍后再试'}`);
+    // Keep dialog open on error? Or close? Let's close it for now.
+    showDeleteDialog.value = false;
+  } finally {
+    isDeleting.value = false;
   }
 };
 
-// Method to handle adding the recipe to today's menu
+// --- Add to Today Logic ---
 const addToToday = () => {
   if (todayMenu.addRecipe(props.recipe)) {
     // If the recipe was successfully added (wasn't already in the menu)
