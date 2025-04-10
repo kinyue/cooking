@@ -11,7 +11,7 @@
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-toolbar>
-      
+
       <v-card-text class="pa-6">
         <div v-if="menuItems.length === 0" class="empty-state pa-8 text-center">
           <v-icon icon="mdi-playlist-plus" size="64" color="grey-lighten-1" class="mb-4"></v-icon>
@@ -24,61 +24,34 @@
         <div v-else class="menu-content">
           <!-- Summary Stats -->
           <div class="stats-row d-flex align-center mb-6">
-            <v-chip
-              label
-              variant="elevated"
-              color="primary"
-              class="mr-4"
-            >
+            <v-chip label variant="elevated" color="primary" class="mr-4">
               <v-icon start icon="mdi-book-open-variant"></v-icon>
               菜谱数量：{{ menuItems.length }}
             </v-chip>
-            <v-chip
-              label
-              variant="elevated"
-              color="success"
-            >
+            <v-chip label variant="elevated" color="success">
               <v-icon start icon="mdi-food-variant"></v-icon>
               食材数量：{{ aggregatedIngredients.length }}
             </v-chip>
           </div>
 
           <!-- Recipes Section -->
-          <v-sheet
-            class="recipes-section mb-6 rounded-lg"
-            elevation="1"
-          >
+          <v-sheet class="recipes-section mb-6 rounded-lg" elevation="1">
             <div class="section-header d-flex align-center px-4 py-3">
               <div class="text-subtitle-1 font-weight-bold">
                 <v-icon icon="mdi-book-open-variant" color="primary" class="mr-2"></v-icon>
                 已选菜谱
               </div>
               <v-spacer></v-spacer>
-              <v-btn
-                variant="text"
-                size="small"
-                color="primary"
-                prepend-icon="mdi-checkbox-marked-circle-outline"
-                @click="toggleAllRecipes"
-              >
+              <v-btn variant="text" size="small" color="primary" prepend-icon="mdi-checkbox-marked-circle-outline"
+                @click="toggleAllRecipes">
                 {{ allRecipesChecked ? '取消全选' : '全选' }}
               </v-btn>
             </div>
             <v-divider></v-divider>
             <v-list class="recipe-list">
-              <v-list-item
-                v-for="recipe in menuItems"
-                :key="recipe.id"
-                :value="recipe"
-                class="recipe-item"
-                rounded="0"
-              >
+              <v-list-item v-for="recipe in menuItems" :key="recipe.id" :value="recipe" class="recipe-item" rounded="0">
                 <template v-slot:prepend>
-                  <v-checkbox-btn
-                    v-model="recipe.checked"
-                    color="primary"
-                    density="comfortable"
-                  ></v-checkbox-btn>
+                  <v-checkbox-btn v-model="recipe.checked" color="primary" density="comfortable"></v-checkbox-btn>
                 </template>
 
                 <v-list-item-title class="recipe-name">
@@ -87,21 +60,11 @@
 
                 <template v-slot:append>
                   <div class="d-flex align-center">
-                    <v-chip
-                      size="small"
-                      variant="flat"
-                      color="primary"
-                      class="mr-2"
-                    >
+                    <v-chip size="small" variant="flat" color="primary" class="mr-2">
                       {{ recipe.ingredients.length }}种食材
                     </v-chip>
-                    <v-btn
-                      icon="mdi-delete"
-                      size="small"
-                      variant="text"
-                      color="error"
-                      @click="removeRecipe(recipe.id)"
-                    ></v-btn>
+                    <v-btn icon="mdi-delete" size="small" variant="text" color="error"
+                      @click="removeRecipe(recipe.id)"></v-btn>
                   </div>
                 </template>
               </v-list-item>
@@ -109,48 +72,32 @@
           </v-sheet>
 
           <!-- Ingredients Section -->
-          <v-sheet
-            class="ingredients-section"
-            elevation="1"
-            rounded="lg"
-          >
+          <v-sheet class="ingredients-section rounded-lg" elevation="1">
             <div class="section-header d-flex align-center px-4 py-3">
               <div class="text-subtitle-1 font-weight-bold">
-                <v-icon icon="mdi-food-variant" color="success" class="mr-2"></v-icon>
+                <v-icon icon="mdi-food-variant" color="primary" class="mr-2"></v-icon>
                 所需食材
               </div>
               <v-spacer></v-spacer>
-              <v-btn
-                variant="text"
-                size="small"
-                color="success"
-                prepend-icon="mdi-checkbox-marked-circle-outline"
-                @click="toggleAllIngredients"
-              >
+              <v-btn variant="text" size="small" color="primary" prepend-icon="mdi-checkbox-marked-circle-outline"
+                @click="toggleAllIngredients">
                 {{ allIngredientsChecked ? '取消全选' : '全选' }}
               </v-btn>
             </div>
             <v-divider></v-divider>
             <v-list class="ingredient-list">
-              <v-list-item
-                v-for="(ingredient, index) in aggregatedIngredients"
-                :key="index"
-                density="comfortable"
-                class="ingredient-item"
-                rounded="0"
-              >
+              <v-list-item v-for="(ingredient, index) in aggregatedIngredients" :key="index" density="comfortable"
+                class="ingredient-item" rounded="0">
                 <template v-slot:prepend>
-                  <v-checkbox-btn
-                    :model-value="ingredient.checked" 
-                    @update:modelValue="todayMenu.toggleManualIngredientCheck(ingredient.name, ingredient.checked)"
-                    color="success"
-                    density="comfortable"
-                  ></v-checkbox-btn>
+                  <!-- Modified event handler -->
+                  <v-checkbox-btn :model-value="ingredient.checked"
+                    @update:modelValue="handleIngredientToggle(ingredient.name, ingredient.checked)"
+                    color="success" density="comfortable"></v-checkbox-btn>
                 </template>
                 <v-list-item-title>
                   {{ ingredient.name }}
                   <!-- Display count instead of quantity -->
-                  <span class="text-grey ml-2">x{{ ingredient.count }}</span> 
+                  <span class="text-grey ml-2">x{{ ingredient.count }}</span>
                 </v-list-item-title>
               </v-list-item>
             </v-list>
@@ -159,42 +106,21 @@
       </v-card-text>
 
       <v-divider v-if="menuItems.length > 0"></v-divider>
-      
+
       <v-card-actions v-if="menuItems.length > 0" class="pa-4">
-        <v-btn
-          variant="tonal"
-          color="primary"
-          @click="copyToClipboard"
-          prepend-icon="mdi-content-copy"
-          class="mr-2"
-        >
+        <v-btn variant="tonal" color="primary" @click="copyToClipboard" prepend-icon="mdi-content-copy" class="mr-2">
           复制清单
         </v-btn>
-        <v-btn
-          variant="tonal"
-          color="success"
-          @click="exportList"
-          prepend-icon="mdi-file-export-outline"
-        >
+        <v-btn variant="tonal" color="success" @click="exportList" prepend-icon="mdi-file-export-outline">
           导出清单
         </v-btn>
         <v-spacer></v-spacer>
-        <v-btn
-          variant="outlined"
-          color="error"
-          @click="confirmClearAll"
-          prepend-icon="mdi-bookmark-remove-multiple"
-          class="mr-2"
-        >
+        <v-btn variant="outlined" color="error" @click="confirmClearAll" prepend-icon="mdi-bookmark-remove-multiple"
+          class="mr-2">
           清空菜单
         </v-btn>
-        <v-btn
-          variant="elevated"
-          color="error"
-          @click="clearChecked"
-          :disabled="!hasCheckedItems"
-          prepend-icon="mdi-delete-sweep"
-        >
+        <v-btn variant="elevated" color="error" @click="clearChecked" :disabled="!hasCheckedItems"
+          prepend-icon="mdi-delete-sweep">
           移除已选
         </v-btn>
       </v-card-actions>
@@ -210,17 +136,10 @@
         <v-card-text>确定要清空今日菜单吗？此操作无法撤销。</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn
-            variant="text"
-            @click="showConfirmDialog = false"
-          >
+          <v-btn variant="text" @click="showConfirmDialog = false">
             取消
           </v-btn>
-          <v-btn
-            color="error"
-            @click="handleConfirmClear"
-            variant="elevated"
-          >
+          <v-btn color="error" @click="handleConfirmClear" variant="elevated">
             确定清空
           </v-btn>
         </v-card-actions>
@@ -258,13 +177,13 @@ const showSnackbar = (message, color = 'success') => {
 // Format list for clipboard and export
 const formatList = () => {
   let text = '# 今日菜单\n\n';
-  
+
   // Add recipes section
   text += '## 已选菜谱\n\n';
   menuItems.value.forEach((recipe) => {
     text += `- ${recipe.name}\n`;
   });
-  
+
   // Add ingredients section with TODO format, using the new count
   text += '\n## 所需食材\n\n';
   aggregatedIngredients.value.forEach((ingredient) => {
@@ -273,7 +192,7 @@ const formatList = () => {
 
   text += '\n---\n'; // Add horizontal rule at the end
   text += `*导出时间：${new Date().toLocaleString('zh-CN')}*`; // Add timestamp
-  
+
   return text;
 };
 
@@ -301,7 +220,7 @@ const exportList = () => {
   link.click();
   document.body.removeChild(link);
   window.URL.revokeObjectURL(url);
-  
+
   showSnackbar('菜单清单已导出');
 };
 
@@ -317,7 +236,7 @@ const menuItems = computed(() => props.items);
 // Computed properties
 const hasCheckedItems = computed(() => {
   // Use the getter from the store now
-  return todayMenu.hasAnyCheckedItems; 
+  return todayMenu.hasAnyCheckedItems;
 });
 
 const allRecipesChecked = computed(() => {
@@ -327,7 +246,7 @@ const allRecipesChecked = computed(() => {
 const allIngredientsChecked = computed(() => {
   // Check if the aggregated list is not empty and every item in it is considered checked
   return aggregatedIngredients.value.length > 0 &&
-         aggregatedIngredients.value.every(ing => ing.checked);
+    aggregatedIngredients.value.every(ing => ing.checked);
 });
 
 // --- Aggregated Ingredients Logic ---
@@ -346,10 +265,11 @@ const aggregatedIngredients = computed(() => {
   return Array.from(ingredientCountMap.entries()).map(([name, count]) => {
     let isChecked = true; // Default to checked
 
-    // Add extra safety check for todayMenu instance and ensure .value is a Set
+    // Add extra safety check for todayMenu instance
+    // Access store state directly, Pinia handles unwrapping refs
     if (todayMenu && todayMenu.manuallyUncheckedIngredients && todayMenu.manuallyCheckedIngredients) {
-      const manuallyUncheckedSet = todayMenu.manuallyUncheckedIngredients.value;
-      const manuallyCheckedSet = todayMenu.manuallyCheckedIngredients.value;
+      const manuallyUncheckedSet = todayMenu.manuallyUncheckedIngredients; // Remove .value
+      const manuallyCheckedSet = todayMenu.manuallyCheckedIngredients;   // Remove .value
 
       // Check if the Sets themselves are valid Set instances before calling .has()
       if (manuallyUncheckedSet instanceof Set && manuallyUncheckedSet.has(name)) {
@@ -359,8 +279,7 @@ const aggregatedIngredients = computed(() => {
       }
       // If neither manual set overrides, isChecked remains true (the default)
     }
-    // Removed redundant comment and duplicate return statement below
-    
+
     return { // Only one return statement needed inside map
       name: name,
       count: count,
@@ -369,7 +288,17 @@ const aggregatedIngredients = computed(() => {
   });
 });
 
-// Methods
+// --- Methods ---
+
+// New handler for ingredient checkbox toggle
+const handleIngredientToggle = (ingredientName, currentStatus) => {
+  if (todayMenu && typeof todayMenu.toggleManualIngredientCheck === 'function') {
+    todayMenu.toggleManualIngredientCheck(ingredientName, currentStatus);
+  } else {
+    console.error('[Dialog] todayMenu store or toggleManualIngredientCheck action not available.');
+  }
+};
+
 const closeDialog = () => {
   dialogVisible.value = false;
 };
@@ -403,7 +332,7 @@ const toggleAllIngredients = () => {
   // Get all currently displayed ingredient names
   const currentIngredientNames = aggregatedIngredients.value.map(ing => ing.name);
   // Call the store action to bulk update the manual check state for these ingredients
-  todayMenu.toggleAllIngredientsCheck(shouldCheck, currentIngredientNames); 
+  todayMenu.toggleAllIngredientsCheck(shouldCheck, currentIngredientNames);
   // Note: We might need to adjust the store action `toggleAllIngredientsCheck` 
   // to accept the list of names to toggle, or implement the logic here.
   // Let's assume for now the store action handles this based on `shouldCheck`.
@@ -421,7 +350,7 @@ const toggleAllIngredients = () => {
 }
 
 .empty-state {
-  background-color: rgb(var(--v-theme-surface-variant));
+  background-color: rgb(var(--v-theme-green-lighten-4));
   border-radius: 8px;
 }
 
@@ -429,18 +358,22 @@ const toggleAllIngredients = () => {
   background-color: rgb(var(--v-theme-surface));
 }
 
-.recipe-list, .ingredient-list {
+.recipe-list,
+.ingredient-list {
   max-height: 300px;
   overflow-y: auto;
 }
 
-.recipe-item, .ingredient-item {
+.recipe-item,
+.ingredient-item {
   border-radius: 0 !important;
   transition: background-color 0.2s;
 }
 
-.recipe-item:hover, .ingredient-item:hover {
-  background-color: rgb(var(--v-theme-surface-variant));
+.recipe-item:hover,
+.ingredient-item:hover {
+  background-color: rgb(var(--v-theme-green-lighten-4));
+  /* Changed hover color */
 }
 
 .recipe-name {
