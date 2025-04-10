@@ -113,7 +113,7 @@
           导出清单
         </v-btn>
         <v-spacer></v-spacer>
-        <v-btn variant="outlined" color="error" @click="confirmClearAll" prepend-icon="mdi-bookmark-remove-multiple"
+        <v-btn variant="outlined" color="error" @click="confirmClearAll" prepend-icon="mdi-playlist-remove"
           class="mr-2">
           清空菜单
         </v-btn>
