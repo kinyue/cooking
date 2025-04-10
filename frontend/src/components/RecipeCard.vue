@@ -55,15 +55,37 @@
         <v-spacer></v-spacer>
         <v-btn icon="mdi-pencil" size="small" variant="text" color="orange-lighten-2" @click.stop="editRecipe"></v-btn>
         <v-btn icon="mdi-delete" size="small" variant="text" color="red-lighten-2" @click.stop="deleteRecipe"></v-btn>
-        <v-btn icon="mdi-plus-box" size="small" variant="text" color="green-lighten-2"></v-btn>
+        <v-btn 
+          icon="mdi-plus-box" 
+          size="small" 
+          variant="text" 
+          :color="todayMenu.hasRecipe(recipe.id) ? 'grey' : 'green-lighten-2'" 
+          :disabled="todayMenu.hasRecipe(recipe.id)"
+          @click.stop="addToToday"
+        ></v-btn>
       </v-card-actions>
     </div>
   </v-card>
+
+  <!-- Reusable Delete Confirmation Dialog -->
+  <DeleteConfirmation
+    v-model="showDeleteDialog"
+    :recipe="props.recipe"
+    :loading="isDeleting"
+    @confirm="handleConfirmDelete"
+  />
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
-// import { useRouter } from 'vue-router'; // Import if needed for actions
+import { ref, defineProps, defineEmits } from 'vue'; // Import ref
+import { useRouter } from 'vue-router';
+import { useTodayMenuStore } from '@/stores/todayMenu';
+import api from '@/services/api';
+import DeleteConfirmation from '@/components/DeleteConfirmation.vue'; // Import the component
+
+// --- State ---
+const showDeleteDialog = ref(false);
+const isDeleting = ref(false);
 
 const props = defineProps({
   recipe: {
@@ -76,10 +98,18 @@ const props = defineProps({
         tags: [],
         ingredients: '无'
     })
+  },
+  // Add snackbar prop to accept the v-model value from the parent
+  snackbar: {
+    type: Object,
+    required: false // Or true if the parent always provides it
   }
 });
 
-// const router = useRouter(); // If using router for actions
+// Emits remain the same
+const emit = defineEmits(['recipeDeleted', 'update:snackbar']);
+const router = useRouter();
+const todayMenu = useTodayMenuStore();
 
 // --- Methods ---
 const getTagColor = (tag) => {
@@ -92,17 +122,49 @@ const getTagColor = (tag) => {
 };
 
 const editRecipe = () => {
-  console.log('Edit recipe:', props.recipe.id);
-  // Example: Navigate to edit page
-  // router.push({ name: 'edit-recipe', params: { id: props.recipe.id } });
+  // Navigate to the edit page for this recipe
+  router.push({ name: 'edit-recipe', params: { id: props.recipe.id } });
 };
 
+// --- Delete Logic ---
 const deleteRecipe = () => {
-  console.log('Delete recipe:', props.recipe.id);
-  // Example: Show confirmation dialog and call API
-  // if (confirm(`确定要删除菜谱 "${props.recipe.name}" 吗？`)) {
-  //   // Call API to delete
-  // }
+  // Show the confirmation dialog instead of window.confirm
+  showDeleteDialog.value = true;
+};
+
+const handleConfirmDelete = async () => {
+  isDeleting.value = true;
+  try {
+    await api.deleteRecipe(props.recipe.id);
+    // Emit an event to notify the parent component (HomeView)
+    emit('recipeDeleted', props.recipe.id);
+    showDeleteDialog.value = false; // Close dialog on success
+    // Optionally show a local success message or rely on parent's snackbar
+  } catch (error) {
+    console.error(`Failed to delete recipe ${props.recipe.id}:`, error);
+    // Emit snackbar update on error
+    emit('update:snackbar', {
+      show: true,
+      text: `删除菜谱 "${props.recipe.name}" 失败: ${error.response?.data?.description || error.message || '请稍后再试'}`,
+      color: 'error',
+      timeout: 3000 // Or use a default timeout from parent
+    });
+    showDeleteDialog.value = false; // Close dialog even on error
+  } finally {
+    isDeleting.value = false;
+  }
+};
+
+// --- Add to Today Logic ---
+const addToToday = () => {
+  if (todayMenu.addRecipe(props.recipe)) {
+    // If the recipe was successfully added (wasn't already in the menu)
+    emit('update:snackbar', {
+      show: true,
+      text: `菜谱 "${props.recipe.name}" 已添加到今日菜单`,
+      color: 'success'
+    });
+  }
 };
 </script>
 

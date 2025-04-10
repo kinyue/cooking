@@ -102,43 +102,60 @@ def recipe_to_dict(row):
         recipe_dict['updated_at'] = recipe_dict['updated_at'].isoformat()
     return recipe_dict
 
-def get_all_recipes(filters=None):
-    """Retrieves all recipes, potentially with filtering and pagination."""
+def get_all_recipes(filters=None, page=1, limit=8):
+    """Retrieves recipes with filtering and pagination."""
     db = get_db()
-    query = "SELECT * FROM recipes"
+    base_query = "FROM recipes"
+    count_query = "SELECT COUNT(*) " + base_query
+    select_query = "SELECT * " + base_query
     params = []
+    count_params = [] # Separate params for count query if needed
 
-    # Basic filtering example (can be expanded)
+    # --- Filtering ---
     where_clauses = []
     if filters:
         if filters.get('search'):
             where_clauses.append("(name LIKE ? OR description LIKE ?)")
             term = f"%{filters['search']}%"
             params.extend([term, term])
-        # Add more filters for tags, difficulty, cuisine etc.
-        # Filtering JSON tags requires specific syntax, e.g., json_each or LIKE on the string
+            count_params.extend([term, term]) # Add to count params as well
+        # TODO: Add more filters for tags, difficulty, cuisine etc.
+        # Example for tags (simple LIKE, might be slow):
+        # if filters.get('tags'):
+        #     tag_list = filters['tags'].split(',') # Assuming comma-separated
+        #     for tag in tag_list:
+        #         where_clauses.append("tags LIKE ?")
+        #         params.append(f'%"{tag.strip()}"%') # Search within JSON array string
+        #         count_params.append(f'%"{tag.strip()}"%')
 
     if where_clauses:
-        query += " WHERE " + " AND ".join(where_clauses)
+        where_sql = " WHERE " + " AND ".join(where_clauses)
+        count_query += where_sql
+        select_query += where_sql
 
-    # Basic ordering
-    sort_by = filters.get('sort', 'created_at')
-    order = filters.get('order', 'desc').lower()
+    # --- Get Total Count ---
+    count_cursor = db.execute(count_query, count_params)
+    total_items = count_cursor.fetchone()[0]
+
+    # --- Ordering ---
+    sort_by = filters.get('sort', 'created_at') if filters else 'created_at'
+    order = filters.get('order', 'desc').lower() if filters else 'desc'
     if sort_by in ['name', 'created_at', 'updated_at', 'difficulty'] and order in ['asc', 'desc']:
-         query += f" ORDER BY {sort_by} {order.upper()}"
+         select_query += f" ORDER BY {sort_by} {order.upper()}"
     else:
-        query += " ORDER BY created_at DESC" # Default sort
+        select_query += " ORDER BY created_at DESC" # Default sort
 
-    # Basic pagination
-    # page = filters.get('page', 1)
-    # limit = filters.get('limit', 10)
-    # offset = (page - 1) * limit
-    # query += " LIMIT ? OFFSET ?"
-    # params.extend([limit, offset])
+    # --- Pagination ---
+    offset = (page - 1) * limit
+    select_query += " LIMIT ? OFFSET ?"
+    params.extend([limit, offset])
 
-    cursor = db.execute(query, params)
-    recipes = cursor.fetchall()
-    return [recipe_to_dict(row) for row in recipes]
+    # --- Fetch Recipes for the Page ---
+    cursor = db.execute(select_query, params)
+    recipes_page = cursor.fetchall()
+
+    # Return page data and total count
+    return ([recipe_to_dict(row) for row in recipes_page], total_items)
 
 
 def get_recipe_by_id(recipe_id):

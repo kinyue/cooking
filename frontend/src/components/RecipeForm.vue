@@ -198,7 +198,7 @@
 
 <script setup>
 import { ref, watch, computed } from 'vue';
-import { useRouter } from 'vue-router';
+
 
 // Define props and emits for TypeScript support
 const props = defineProps({
@@ -208,8 +208,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['submit']);
-const router = useRouter();
+const emit = defineEmits(['submit', 'cancel']); // Add 'cancel' to emits
 const form = ref(null); // Template ref for the v-form
 
 const isEditing = computed(() => !!props.initialData);
@@ -287,7 +286,6 @@ watch(instructionsText, (newText) => {
 
 // Submit form handler
 const submitForm = async () => {
-  console.log('submitForm function called'); // Log function entry
   const { valid } = await form.value.validate();
   if (valid) {
     // Prepare data for submission (clone to avoid modifying original ref directly)
@@ -304,11 +302,9 @@ const submitForm = async () => {
   }
 };
 
-// Cancel form handler
+// Cancel form handler - now emits an event
 const cancelForm = () => {
-  // Navigate back or reset form based on context
-  // For simplicity, just go back
-  router.go(-1);
+  emit('cancel'); // Emit cancel event instead of navigating directly
 };
 
 // Function to reset form (optional)

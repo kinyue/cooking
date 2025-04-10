@@ -1,0 +1,2 @@
+- [ ] 菜谱详情页面删除菜谱之后返回的地址仍是delete相关的
+- [x] 解决前端console的warning和error

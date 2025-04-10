@@ -111,6 +111,14 @@
             <v-spacer></v-spacer>
             <v-btn icon="mdi-pencil" size="small" variant="text" color="orange-lighten-2" @click.stop="editRecipe"></v-btn>
             <v-btn icon="mdi-delete" size="small" variant="text" color="red-lighten-2" @click.stop="deleteRecipe"></v-btn>
+            <v-btn 
+              icon="mdi-plus-box" 
+              size="small" 
+              variant="text" 
+              :color="todayMenu.hasRecipe(recipe.id) ? 'grey' : 'green-lighten-2'" 
+              :disabled="todayMenu.hasRecipe(recipe.id)"
+              @click.stop="addToToday"
+            ></v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
@@ -132,45 +140,13 @@
     </v-row>
   </v-container>
 
-  <!-- Delete Confirmation Dialog -->
-  <v-dialog
+  <!-- Use the reusable Delete Confirmation Dialog -->
+  <DeleteConfirmation
     v-model="dialog.show"
-    max-width="400"
-    persistent
-  >
-    <v-card>
-      <v-card-title class="pt-7 pb-4 px-6 text-h6 font-weight-medium d-flex align-center" style="gap: 8px">
-        <v-icon icon="mdi-alert-circle" color="error" size="24"></v-icon>
-        <span>确认删除</span>
-      </v-card-title>
-      <v-divider></v-divider>
-      <v-card-text class="pt-6 pb-4 px-6 text-body-1">
-        确定要删除菜谱 <strong class="text-error">"{{ recipe?.name }}"</strong> 吗？<br>
-        <span class="text-grey-darken-1">该操作无法撤销。</span>
-      </v-card-text>
-      <v-card-actions class="pa-6 pt-0">
-        <v-spacer></v-spacer>
-        <v-btn
-          color="grey-darken-1"
-          variant="text"
-          class="mr-3"
-          @click="dialog.show = false"
-          min-width="84"
-        >
-          取消
-        </v-btn>
-        <v-btn
-          color="error"
-          variant="elevated"
-          @click="confirmDelete"
-          :loading="dialog.loading"
-          min-width="84"
-        >
-          删除
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+    :recipe="recipe"
+    :loading="dialog.loading"
+    @confirm="confirmDelete"
+  />
 
   <!-- Error Snackbar -->
   <v-snackbar
@@ -202,13 +178,24 @@
 </template>
 
 <script>
-// import { ref, onMounted } from 'vue'; // Keep ref/onMounted commented if not used directly here
 import { useRoute, useRouter } from 'vue-router';
-// Import the named exports getRecipeById and deleteRecipe
 import { getRecipeById, deleteRecipe } from '@/services/api';
+import DeleteConfirmation from '@/components/DeleteConfirmation.vue'; // Import the component
+import { useTodayMenuStore } from '@/stores/todayMenu'; // Import the store
+
 
 export default {
   name: 'RecipeDetailView',
+  // Define props to accept the 'id' from the router
+  props: {
+    id: {
+      type: [String, Number], // Accept both string (from URL) and number
+      required: true
+    }
+  },
+  components: { // Register the component
+    DeleteConfirmation,
+  },
   data() {
     return {
       recipe: null,
@@ -229,7 +216,8 @@ export default {
   setup() {
     const route = useRoute();
     const router = useRouter();
-    return { route, router };
+    const todayMenu = useTodayMenuStore(); // Instantiate the store inside setup
+    return { route, router, todayMenu }; // Return todayMenu
   },
   mounted() {
     this.fetchRecipeDetails();
@@ -242,8 +230,8 @@ export default {
       this.loading = true;
       this.error = null;
       try {
-        const recipeId = this.route.params.id;
-        const response = await getRecipeById(recipeId);
+        // Access id directly via props now
+        const response = await getRecipeById(this.id); 
         this.recipe = response.data;
       } catch (error) {
         console.error('Failed to fetch recipe details:', error);
@@ -282,6 +270,31 @@ export default {
         };
       } finally {
         this.dialog.loading = false;
+      }
+    },
+    // Method to add the current recipe to today's menu
+    addToToday() {
+      if (!this.recipe) return; // Guard against missing recipe data
+
+      // Access store via this.todayMenu now
+      if (this.todayMenu.addRecipe(this.recipe)) { 
+        // If the recipe was successfully added (wasn't already in the menu)
+        this.snackbar = {
+          show: true,
+          text: `菜谱 "${this.recipe.name}" 已添加到今日菜单`,
+          color: 'success',
+          timeout: 3000
+        };
+        // Optionally, force re-render if button state doesn't update automatically
+        // this.$forceUpdate(); 
+      } else {
+        // Handle case where recipe might already be in the menu (optional feedback)
+        this.snackbar = {
+          show: true,
+          text: `菜谱 "${this.recipe.name}" 已在今日菜单中`,
+          color: 'info', // Use info color for existing items
+          timeout: 3000
+        };
       }
     },
   },
