@@ -22,7 +22,6 @@
         </div>
 
         <div v-else class="menu-content">
-          <!-- Summary Stats -->
           <div class="stats-row d-flex align-center mb-6">
             <v-chip label variant="elevated" color="primary" class="mr-4">
               <v-icon start icon="mdi-book-open-variant"></v-icon>
@@ -34,7 +33,6 @@
             </v-chip>
           </div>
 
-          <!-- Recipes Section -->
           <v-sheet class="recipes-section mb-6 rounded-lg" elevation="1">
             <div class="section-header d-flex align-center px-4 py-3">
               <div class="text-subtitle-1 font-weight-bold">
@@ -57,6 +55,9 @@
                 <v-list-item-title class="recipe-name">
                   {{ recipe.name }}
                 </v-list-item-title>
+                <v-list-item-subtitle class="text-caption text-grey-darken-1 mt-1">
+                  食材: {{ recipe.ingredients.map(ing => ing.name).join(', ') }}
+                </v-list-item-subtitle>
 
                 <template v-slot:append>
                   <div class="d-flex align-center">
@@ -71,7 +72,6 @@
             </v-list>
           </v-sheet>
 
-          <!-- Ingredients Section -->
           <v-sheet class="ingredients-section rounded-lg" elevation="1">
             <div class="section-header d-flex align-center px-4 py-3">
               <div class="text-subtitle-1 font-weight-bold">
@@ -89,14 +89,12 @@
               <v-list-item v-for="(ingredient, index) in aggregatedIngredients" :key="index" density="comfortable"
                 class="ingredient-item" rounded="0">
                 <template v-slot:prepend>
-                  <!-- Modified event handler -->
                   <v-checkbox-btn :model-value="ingredient.checked"
                     @update:modelValue="handleIngredientToggle(ingredient.name, ingredient.checked)"
                     color="success" density="comfortable"></v-checkbox-btn>
                 </template>
                 <v-list-item-title>
                   {{ ingredient.name }}
-                  <!-- Display count instead of quantity -->
                   <span class="text-grey ml-2">x{{ ingredient.count }}</span>
                 </v-list-item-title>
               </v-list-item>
@@ -126,7 +124,6 @@
       </v-card-actions>
     </v-card>
 
-    <!-- Confirmation Dialog -->
     <v-dialog v-model="showConfirmDialog" width="auto">
       <v-card class="pa-4">
         <v-card-title class="text-h6 mb-2">
@@ -150,9 +147,9 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { useTodayMenuStore } from '@/stores/todayMenu'; // Import the store
+import { useTodayMenuStore } from '@/stores/todayMenu';
 
-const todayMenu = useTodayMenuStore(); // Instantiate the store
+const todayMenu = useTodayMenuStore();
 
 // Props and Emits
 const props = defineProps({
@@ -174,24 +171,54 @@ const showSnackbar = (message, color = 'success') => {
   });
 };
 
-// Format list for clipboard and export
+/**
+ * Formats the today's menu into a Markdown string for clipboard copy and export.
+ * Includes:
+ * 1. Checked recipes, each followed by a flat list of its original ingredients.
+ * 2. A separate list of checked ingredients from the aggregated shopping list.
+ * @returns {string} The formatted Markdown string.
+ */
 const formatList = () => {
   let text = '# 今日菜单\n\n';
+  let hasContent = false; // Flag to track if any content is added
 
-  // Add recipes section
-  text += '## 已选菜谱\n\n';
-  menuItems.value.forEach((recipe) => {
-    text += `- ${recipe.name}\n`;
-  });
+  // --- Section 1: Checked Recipes with their original ingredients ---
+  const checkedRecipes = menuItems.value.filter(recipe => recipe.checked); // Get only recipes checked in the UI
+  if (checkedRecipes.length > 0) {
+    hasContent = true;
+    text += '## 已选菜谱\n\n';
+    checkedRecipes.forEach((recipe) => {
+      text += `- ${recipe.name}\n`; // Add recipe name as a list item
+      // Add original ingredients as a flat, comma-separated list on the next line (indented slightly for clarity)
+      if (recipe.ingredients && recipe.ingredients.length > 0) {
+        const ingredientNames = recipe.ingredients.map(ing => ing.name).join(', ');
+        text += `  (食材: ${ingredientNames})\n`; // Indented line showing flat ingredients list
+      } else {
+        text += `  (无特定食材)\n`; // Indicate if a recipe has no specific ingredients listed
+      }
+    });
+  }
 
-  // Add ingredients section with TODO format, using the new count
-  text += '\n## 所需食材\n\n';
-  aggregatedIngredients.value.forEach((ingredient) => {
-    text += `- [ ] ${ingredient.name} (x${ingredient.count})\n`; // Display count here too
-  });
+  // --- Section 2: Checked Aggregated Ingredients (Shopping List) ---
+  // Filter the aggregated list for items that are actually checked in the UI's shopping list section
+  const checkedShoppingListIngredients = aggregatedIngredients.value.filter(ingredient => ingredient.checked);
+  if (checkedShoppingListIngredients.length > 0) {
+    hasContent = true;
+    text += '\n## 所需食材 (购物清单)\n\n'; // Heading for the checked shopping list items
+    checkedShoppingListIngredients.forEach((ingredient) => {
+      // Keep the original Markdown task list format for the shopping list
+      text += `- [ ] ${ingredient.name} (x${ingredient.count})\n`; // e.g., - [ ] Tomato (x2)
+    });
+  }
 
-  text += '\n---\n'; // Add horizontal rule at the end
-  text += `*导出时间：${new Date().toLocaleString('zh-CN')}*`; // Add timestamp
+  // Add separator and timestamp only if there was any content (checked recipes or checked ingredients)
+  if (hasContent) {
+    text += '\n---\n'; // Add horizontal rule separator
+    text += `*导出时间：${new Date().toLocaleString('zh-CN')}*`; // Add timestamp in specified locale
+  } else {
+    text += '（无勾选项目）\n'; // Indicate if nothing is checked
+  }
+
 
   return text;
 };
@@ -235,8 +262,7 @@ const menuItems = computed(() => props.items);
 
 // Computed properties
 const hasCheckedItems = computed(() => {
-  // Use the getter from the store now
-  return todayMenu.hasAnyCheckedItems;
+  return todayMenu.hasAnyCheckedItems; // Use the getter from the store
 });
 
 const allRecipesChecked = computed(() => {
@@ -250,12 +276,14 @@ const allIngredientsChecked = computed(() => {
 });
 
 // --- Aggregated Ingredients Logic ---
+// Computes the list of unique ingredients needed based on checked recipes,
+// including their total count and final checked status (considering manual overrides).
 const aggregatedIngredients = computed(() => {
   const ingredientCountMap = new Map();
 
   // Only consider ingredients from CHECKED recipes
   menuItems.value.filter(recipe => recipe.checked).forEach(recipe => {
-    const uniqueIngredientsInRecipe = new Set(recipe.ingredients.map(ing => ing.name));
+    const uniqueIngredientsInRecipe = new Set(recipe.ingredients.map(ing => ing.name)); // Get unique ingredient names for this recipe
     uniqueIngredientsInRecipe.forEach(ingredientName => {
       ingredientCountMap.set(ingredientName, (ingredientCountMap.get(ingredientName) || 0) + 1);
     });
@@ -263,13 +291,12 @@ const aggregatedIngredients = computed(() => {
 
   // Determine the final checked state based on manual overrides
   return Array.from(ingredientCountMap.entries()).map(([name, count]) => {
-    let isChecked = true; // Default to checked
+    let isChecked = true; // Default to checked, assuming it's needed because its recipe is checked
 
-    // Add extra safety check for todayMenu instance
     // Access store state directly, Pinia handles unwrapping refs
     if (todayMenu && todayMenu.manuallyUncheckedIngredients && todayMenu.manuallyCheckedIngredients) {
-      const manuallyUncheckedSet = todayMenu.manuallyUncheckedIngredients; // Remove .value
-      const manuallyCheckedSet = todayMenu.manuallyCheckedIngredients;   // Remove .value
+      const manuallyUncheckedSet = todayMenu.manuallyUncheckedIngredients;
+      const manuallyCheckedSet = todayMenu.manuallyCheckedIngredients;
 
       // Check if the Sets themselves are valid Set instances before calling .has()
       if (manuallyUncheckedSet instanceof Set && manuallyUncheckedSet.has(name)) {
@@ -277,20 +304,20 @@ const aggregatedIngredients = computed(() => {
       } else if (manuallyCheckedSet instanceof Set && manuallyCheckedSet.has(name)) {
         isChecked = true; // Manually checked (explicitly setting, though default is true)
       }
-      // If neither manual set overrides, isChecked remains true (the default)
+      // If neither manual set overrides, isChecked remains true (the default determined by recipe selection)
     }
 
-    return { // Only one return statement needed inside map
+    return {
       name: name,
       count: count,
-      checked: isChecked // Final checked state
+      checked: isChecked // Final checked state for the UI checkbox
     };
   });
 });
 
 // --- Methods ---
 
-// New handler for ingredient checkbox toggle
+// Handler for individual ingredient checkbox toggle in the shopping list
 const handleIngredientToggle = (ingredientName, currentStatus) => {
   if (todayMenu && typeof todayMenu.toggleManualIngredientCheck === 'function') {
     todayMenu.toggleManualIngredientCheck(ingredientName, currentStatus);
@@ -333,13 +360,6 @@ const toggleAllIngredients = () => {
   const currentIngredientNames = aggregatedIngredients.value.map(ing => ing.name);
   // Call the store action to bulk update the manual check state for these ingredients
   todayMenu.toggleAllIngredientsCheck(shouldCheck, currentIngredientNames);
-  // Note: We might need to adjust the store action `toggleAllIngredientsCheck` 
-  // to accept the list of names to toggle, or implement the logic here.
-  // Let's assume for now the store action handles this based on `shouldCheck`.
-  // A more direct approach might be:
-  // currentIngredientNames.forEach(name => {
-  //   todayMenu.toggleManualIngredientCheck(name, !shouldCheck); // Pass the *opposite* of target state
-  // });
 };
 </script>
 
@@ -373,7 +393,6 @@ const toggleAllIngredients = () => {
 .recipe-item:hover,
 .ingredient-item:hover {
   background-color: rgb(var(--v-theme-green-lighten-4));
-  /* Changed hover color */
 }
 
 .recipe-name {
