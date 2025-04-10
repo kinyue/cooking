@@ -62,9 +62,9 @@ export const useTodayMenuStore = defineStore('todayMenu', () => {
       // User wants to uncheck it manually
       manuallyUncheckedIngredients.value.add(ingredientName);
       manuallyCheckedIngredients.value.delete(ingredientName); // Remove if it was manually checked before
+
     } else {
       // User wants to check it manually
-      manuallyCheckedIngredients.value.add(ingredientName);
       manuallyUncheckedIngredients.value.delete(ingredientName); // Remove if it was manually unchecked before
     }
   }

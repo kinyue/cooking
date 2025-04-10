@@ -22,7 +22,6 @@ const getRecipeById = async (recipeId) => {
   try {
     // Construct the URL for the specific recipe
     const response = await api.get(`/recipes/${recipeId}`);
-    console.log('Recipe data:', response); // Log the response for debugging
     return response.data; // Assuming backend returns the recipe object directly or within a data property
   } catch (error) {
     console.error(`API Error fetching recipe ${recipeId}:`, error);
