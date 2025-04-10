@@ -98,10 +98,15 @@ const props = defineProps({
         tags: [],
         ingredients: '无'
     })
+  },
+  // Add snackbar prop to accept the v-model value from the parent
+  snackbar: {
+    type: Object,
+    required: false // Or true if the parent always provides it
   }
 });
 
-// Include 'update:snackbar' in emits
+// Emits remain the same
 const emit = defineEmits(['recipeDeleted', 'update:snackbar']);
 const router = useRouter();
 const todayMenu = useTodayMenuStore();

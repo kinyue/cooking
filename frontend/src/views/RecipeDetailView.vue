@@ -186,6 +186,13 @@ import { useTodayMenuStore } from '@/stores/todayMenu'; // Import the store
 
 export default {
   name: 'RecipeDetailView',
+  // Define props to accept the 'id' from the router
+  props: {
+    id: {
+      type: [String, Number], // Accept both string (from URL) and number
+      required: true
+    }
+  },
   components: { // Register the component
     DeleteConfirmation,
   },
@@ -223,8 +230,8 @@ export default {
       this.loading = true;
       this.error = null;
       try {
-        const recipeId = this.route.params.id;
-        const response = await getRecipeById(recipeId);
+        // Access id directly via props now
+        const response = await getRecipeById(this.id); 
         this.recipe = response.data;
       } catch (error) {
         console.error('Failed to fetch recipe details:', error);
