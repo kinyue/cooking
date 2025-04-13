@@ -228,7 +228,6 @@ const copyToClipboard = async () => {
   const text = formatList();
   try {
     await navigator.clipboard.writeText(text);
-    emit('update:modelValue', false); // Close dialog
     showSnackbar('菜单清单已复制到剪贴板');
   } catch (err) {
     showSnackbar('复制失败，请重试', 'error');
