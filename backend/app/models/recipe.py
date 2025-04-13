@@ -166,6 +166,23 @@ def get_recipe_by_id(recipe_id):
     return recipe_to_dict(recipe)
 
 
+def get_random_recipes(count=3):
+    """Retrieves a specified number of random recipes."""
+    db = get_db()
+    # Ensure count is a positive integer
+    try:
+        limit = int(count)
+        if limit <= 0:
+            limit = 3 # Default to 3 if invalid count provided
+    except (ValueError, TypeError):
+        limit = 3 # Default to 3 if conversion fails
+
+    # SQLite uses RANDOM() for random ordering
+    cursor = db.execute("SELECT * FROM recipes ORDER BY RANDOM() LIMIT ?", (limit,))
+    recipes = cursor.fetchall()
+    return [recipe_to_dict(row) for row in recipes]
+
+
 def add_recipe(data):
     """Adds a new recipe to the database."""
     db = get_db()

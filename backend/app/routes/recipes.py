@@ -1,7 +1,8 @@
 # backend/app/routes/recipes.py
 # Routes for recipe related operations
 from flask import Blueprint, jsonify, request, abort
-from ..models import recipe as db_recipe # Import database functions
+# Import specific functions for clarity or keep as is
+from ..models import recipe as db_recipe
 
 bp = Blueprint('recipes', __name__, url_prefix='/api/recipes')
 limit_per_page = 8 # Default limit for pagination
@@ -69,6 +70,23 @@ def get_recipe(id):
     except Exception as e:
         print(f"Error fetching recipe {id}: {e}")
         abort(500, description=f"Internal server error fetching recipe {id}.")
+
+
+@bp.route('/random', methods=['GET'])
+def get_random_recipes_route():
+    """Get a specified number of random recipes."""
+    count = request.args.get('count', 3, type=int)
+    # Basic validation for count
+    if count <= 0:
+        count = 3
+    count = min(count, 100)  # Limit to a maximum of 100 random recipes
+
+    try:
+        recipes = db_recipe.get_random_recipes(count)
+        return jsonify({"data": recipes})
+    except Exception as e:
+        print(f"Error fetching random recipes: {e}")
+        abort(500, description="Internal server error fetching random recipes.")
 
 
 @bp.route('/', methods=['POST'])

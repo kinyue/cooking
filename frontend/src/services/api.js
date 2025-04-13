@@ -63,17 +63,31 @@ const createRecipe = async (recipeData) => {
   }
 };
 
+// Function to fetch random recipes
+const fetchRandomRecipes = async (count = 3) => {
+  try {
+    const response = await api.get('/recipes/random', { params: { count } });
+    // Assuming the backend returns { "data": [...] }
+    return response.data.data;
+  } catch (error) {
+    console.error('API Error fetching random recipes:', error);
+    throw error; // Re-throw the error
+  }
+};
+
 export {
   getRecipes,
   getRecipeById,
+  fetchRandomRecipes, // Add to named exports
   createRecipe, 
   updateRecipe,
   deleteRecipe,
-}
+};
 
 export default {
   getRecipes,
   getRecipeById,
+  fetchRandomRecipes, // Add to default export
   createRecipe, 
   updateRecipe,
   deleteRecipe
