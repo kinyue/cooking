@@ -56,7 +56,7 @@
         <v-btn icon="mdi-pencil" size="small" variant="text" color="orange-lighten-2" @click.stop="editRecipe"></v-btn>
         <v-btn icon="mdi-delete" size="small" variant="text" color="red-lighten-2" @click.stop="deleteRecipe"></v-btn>
         <v-btn 
-          icon="mdi-plus-box" 
+          icon="mdi-silverware-fork-knife" 
           size="small" 
           variant="text" 
           :color="todayMenu.hasRecipe(recipe.id) ? 'grey' : 'green-lighten-2'" 
