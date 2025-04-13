@@ -17,10 +17,11 @@
     <v-spacer></v-spacer>
 
     <!-- Use icon buttons directly on larger screens now -->
-    <v-btn icon to="/random" class="header-button d-none d-sm-flex">
+    <!-- Modified dice button to open dialog -->
+    <v-btn icon @click="isRandomRecipeDialogOpen = true" class="header-button d-none d-sm-flex">
       <v-icon>mdi-dice-5-outline</v-icon>
     </v-btn>
-    <!-- Bind click event to open the dialog -->
+    <!-- Bind click event to open the add dialog -->
     <v-btn icon @click="showAddDialog = true" class="header-button d-none d-sm-flex">
       <v-icon>mdi-hamburger-plus</v-icon>
     </v-btn>
@@ -37,7 +38,8 @@
     </v-btn>
 
     <!-- Buttons for smaller screens -->
-    <v-btn icon to="/random" class="d-sm-none mx-1">
+     <!-- Modified dice button to open dialog -->
+    <v-btn icon @click="isRandomRecipeDialogOpen = true" class="d-sm-none mx-1">
       <v-icon>mdi-dice-5-outline</v-icon>
     </v-btn>
     <!-- Add Recipe Button for smaller screens -->
@@ -98,6 +100,9 @@
       @clear-checked="handleClearChecked"
     />
 
+    <!-- Random Recipe Dialog -->
+    <RandomRecipeDialog v-model="isRandomRecipeDialogOpen" />
+
     <!-- Add Recipe Dialog -->
     <v-dialog v-model="showAddDialog" persistent max-width="800px">
       <v-card>
@@ -145,6 +150,7 @@
 import { ref } from 'vue';
 import { useTodayMenuStore } from '@/stores/todayMenu';
 import TodayMenuDialog from '@/components/TodayMenuDialog.vue';
+import RandomRecipeDialog from '@/components/RandomRecipeDialog.vue'; // Import RandomRecipeDialog
 import RecipeForm from '@/components/RecipeForm.vue'; // Import RecipeForm
 import api from '@/services/api'; // Import api service
 import { useRouter } from 'vue-router'; // Import useRouter
@@ -152,6 +158,7 @@ import { useRouter } from 'vue-router'; // Import useRouter
 const todayMenu = useTodayMenuStore();
 const showMenuDialog = ref(false);
 const showAddDialog = ref(false); // State for Add Recipe Dialog
+const isRandomRecipeDialogOpen = ref(false); // State for Random Recipe Dialog
 const router = useRouter(); // Get router instance
 
 // Snackbar state

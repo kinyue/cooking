@@ -37,6 +37,21 @@ This project contains a frontend Vue application and a backend Flask API.
     ```
     The backend API will be running at `http://127.0.0.1:5000`.
 
+#### Database Management
+
+1.  Initialize the database (this will clear existing data):
+    ```bash
+    cd backend && flask init-db
+    ```
+2.  Seed the database with sample recipe data:
+    ```bash
+    cd backend && flask seed-recipes
+    ```
+3.  Seed the database with image data for recipes:
+    ```bash
+    cd backend && flask seed-images
+    ```
+
 ### Frontend
 
 1.  Navigate to the `frontend` directory.

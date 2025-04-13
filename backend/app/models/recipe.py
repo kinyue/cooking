@@ -2,9 +2,7 @@
 # Recipe data model and database interaction functions
 import sqlite3
 import json
-import click # Import click for CLI commands
 from flask import current_app, g
-from flask.cli import with_appcontext # Helper for CLI commands
 
 def get_db():
     """Connects to the specific database."""
@@ -66,14 +64,26 @@ def init_db():
     -- CREATE INDEX IF NOT EXISTS idx_recipes_tags ON recipes (json_extract(tags, '$'));
     """
     db.executescript(schema)
-    print("Initialized the database.")
+    print("Initialized the recipes table.")
+
+    # Initialize the recipe_images table from its schema file
+    try:
+        # Assuming open_resource looks relative to the application root or blueprint location
+        # Adjust path if needed, e.g., 'data/schema_images.sql' if relative to project root
+        with current_app.open_resource('../data/schema_images.sql') as f:
+             images_schema = f.read().decode('utf8')
+             db.executescript(images_schema)
+        print("Initialized the recipe_images table.")
+    except FileNotFoundError:
+        print("Error: Could not find schema_images.sql. Make sure it's in the backend/data directory.")
+    except Exception as e:
+        print(f"Error initializing recipe_images table: {e}")
 
 
 def init_app(app):
     """Register database functions with the Flask app."""
     app.teardown_appcontext(close_db)
-    # Register the init-db command
-    app.cli.add_command(init_db_command)
+    # Note: All CLI command registrations moved to app factory (__init__.py)
 
 
 # --- CRUD Operations ---
@@ -166,6 +176,23 @@ def get_recipe_by_id(recipe_id):
     return recipe_to_dict(recipe)
 
 
+def get_random_recipes(count=3):
+    """Retrieves a specified number of random recipes."""
+    db = get_db()
+    # Ensure count is a positive integer
+    try:
+        limit = int(count)
+        if limit <= 0:
+            limit = 3 # Default to 3 if invalid count provided
+    except (ValueError, TypeError):
+        limit = 3 # Default to 3 if conversion fails
+
+    # SQLite uses RANDOM() for random ordering
+    cursor = db.execute("SELECT * FROM recipes ORDER BY RANDOM() LIMIT ?", (limit,))
+    recipes = cursor.fetchall()
+    return [recipe_to_dict(row) for row in recipes]
+
+
 def add_recipe(data):
     """Adds a new recipe to the database."""
     db = get_db()
@@ -228,11 +255,19 @@ def delete_recipe(recipe_id):
     return cursor.rowcount > 0 # Return True if a row was deleted
 
 
-# --- CLI Command ---
+def get_recipe_primary_image_data(recipe_id):
+    """Retrieves the primary image data (BLOB) for a given recipe ID."""
+    db = get_db()
+    cursor = db.execute(
+        "SELECT image_data FROM recipe_images WHERE recipe_id = ? AND is_primary = 1",
+        (recipe_id,)
+    )
+    image_row = cursor.fetchone()
+    if image_row and image_row['image_data']:
+        return image_row['image_data']
+    else:
+        return None
 
-@click.command('init-db')
-@with_appcontext
-def init_db_command():
-    """Clear existing data and create new tables."""
-    init_db()
-    click.echo('Initialized the database.')
+
+# --- No CLI Commands in this file ---
+# All CLI commands have been moved to cli_commands.py

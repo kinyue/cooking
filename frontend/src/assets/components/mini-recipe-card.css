@@ -1,0 +1,88 @@
+.mini-recipe-card {
+  width: 100%;
+  max-width: 400px; /* Increased width */
+  /* border-radius is handled by v-card */
+  overflow: hidden; /* Keep overflow hidden */
+  transition: box-shadow 0.3s ease-in-out; /* Match RecipeCard transition */
+}
+
+.mini-recipe-card .v-card {
+  /* Ensure no explicit height is set */
+  /* border-radius is inherited or set by Vuetify */
+  background: white;
+  display: flex; /* Use flex to manage internal layout */
+  flex-direction: column;
+}
+
+/* Apply hover shadow to the outer div */
+.mini-recipe-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+
+.mini-recipe-card .v-img {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+/* Remove the gradient overlay */
+/* .mini-recipe-card .v-img::after { ... } */
+
+.mini-recipe-card .v-card-title {
+  font-size: 1rem !important;
+  line-height: 1.3; /* Slightly tighter line height */
+  max-height: 2.6em; /* Limit to 2 lines */
+  overflow: hidden;
+  color: rgba(0, 0, 0, 0.87);
+  font-weight: 600;
+  letter-spacing: 0.0125em;
+  margin-bottom: 2px; /* Reduced margin */
+}
+
+.mini-recipe-card .v-card-text {
+  padding: 4px 10px 8px 10px !important;
+  flex-shrink: 0; /* Prevent text area from shrinking */
+  /* Removed flex-grow to prevent stretching */
+}
+
+/* Common text styles */
+.mini-recipe-card .text-truncate {
+  max-width: 100%;
+  display: inline-block; /* Ensure truncate works */
+  vertical-align: middle; /* Align text with icons */
+}
+
+.mini-recipe-card .text-grey {
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.66) !important;
+  letter-spacing: 0.0125em;
+}
+
+.mini-recipe-card .v-divider {
+  height: 10px; /* Smaller divider */
+  opacity: 0.25;
+  margin: 0 4px !important; /* Reduced margin */
+}
+
+.mini-recipe-card .v-icon {
+  opacity: 0.85;
+}
+
+/* 信息行样式 */
+.mini-recipe-card .info-row {
+  display: flex;
+  flex-wrap: wrap; /* Allow chips to wrap if needed */
+  align-items: center;
+  gap: 3px; /* Reduced gap */
+  padding: 1px 0; /* Reduced padding */
+}
+
+/* 食材标签样式 */
+.mini-recipe-card .ingredients {
+  margin-top: 2px; /* Reduced margin */
+  padding: 2px 0; /* Reduced padding */
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Remove stack-specific styles */
+/* .random-recipe-dialog .mini-recipe-card { ... } */
+/* .random-recipe-dialog .mini-recipe-card .v-card { ... } */

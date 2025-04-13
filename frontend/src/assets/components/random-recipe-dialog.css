@@ -1,0 +1,70 @@
+/* Dialog customization */
+.random-recipe-dialog .v-card {
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f8f9fa;
+}
+
+.random-recipe-dialog .v-card-title {
+  padding: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background-color: #e9ecef; /* Added background color */
+  position: relative;
+  z-index: 5; /* Ensure title is above cards */
+}
+
+.random-recipe-dialog .v-card-text {
+  padding: 16px 16px 24px 16px; /* Reduced horizontal padding */
+  position: relative;
+  background: #f8f9fa;
+  /* Removed display: flex and flex-direction */
+}
+
+/* Area to display the single recipe card */
+.recipe-display-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-bottom: 60px; /* Reduced padding further */
+  position: relative;
+}
+
+.mini-recipe-card-container {
+  margin-bottom: 12px; /* Further reduced space */
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+
+/* Card actions */
+.card-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px 0; /* Reduced padding */
+  width: 100%;
+  position: absolute;
+  bottom: 16px; /* Adjusted bottom position */
+  left: 0;
+}
+
+/* Loading and finished states */
+.loading-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.finished-state {
+  text-align: center;
+  padding: 32px;
+}
+
+.finished-state p {
+  margin-bottom: 24px;
+  color: var(--v-primary-base);
+  font-size: 1.2em;
+}

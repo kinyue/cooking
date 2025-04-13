@@ -1,7 +1,8 @@
 # backend/app/routes/recipes.py
 # Routes for recipe related operations
 from flask import Blueprint, jsonify, request, abort
-from ..models import recipe as db_recipe # Import database functions
+# Import specific functions for clarity or keep as is
+from ..models import recipe as db_recipe
 
 bp = Blueprint('recipes', __name__, url_prefix='/api/recipes')
 limit_per_page = 8 # Default limit for pagination
@@ -69,6 +70,23 @@ def get_recipe(id):
     except Exception as e:
         print(f"Error fetching recipe {id}: {e}")
         abort(500, description=f"Internal server error fetching recipe {id}.")
+
+
+@bp.route('/random', methods=['GET'])
+def get_random_recipes_route():
+    """Get a specified number of random recipes."""
+    count = request.args.get('count', 3, type=int)
+    # Basic validation for count
+    if count <= 0:
+        count = 3
+    count = min(count, 100)  # Limit to a maximum of 100 random recipes
+
+    try:
+        recipes = db_recipe.get_random_recipes(count)
+        return jsonify({"data": recipes})
+    except Exception as e:
+        print(f"Error fetching random recipes: {e}")
+        abort(500, description="Internal server error fetching random recipes.")
 
 
 @bp.route('/', methods=['POST'])
@@ -146,3 +164,20 @@ def delete_recipe(id):
     except Exception as e:
         print(f"Error deleting recipe {id}: {e}")
         abort(500, description=f"Internal server error deleting recipe {id}.")
+
+
+
+@bp.route('/<int:id>/image', methods=['GET'])
+def get_recipe_image(id):
+    """Get the primary image for a recipe."""
+    try:
+        image_data = db_recipe.get_recipe_primary_image_data(id)
+        if image_data is None:
+            abort(404, description=f"No primary image found for recipe with id {id}.")
+        
+        # Return the image data as a binary response
+        # Assuming JPEG format, adjust if needed
+        return image_data, 200, {'Content-Type': 'image/jpeg'} 
+    except Exception as e:
+        print(f"Error fetching image for recipe {id}: {e}")
+        abort(500, description=f"Internal server error fetching image for recipe {id}.")

@@ -8,6 +8,8 @@ from flask_cors import CORS
 from .config import config_by_name
 from .models import recipe as db_recipe # Alias to avoid naming conflict
 from .routes import recipes
+# Import all CLI commands from the cli_commands module
+from .scripts.cli_commands import init_db_command, seed_recipes_command, seed_images_command
 
 def create_app(config_name=None):
     """Application factory function."""
@@ -37,6 +39,11 @@ def create_app(config_name=None):
 
     # Register blueprints
     app.register_blueprint(recipes.bp)
+
+    # Register CLI commands
+    app.cli.add_command(init_db_command)
+    app.cli.add_command(seed_recipes_command)
+    app.cli.add_command(seed_images_command)
 
     # Add a simple route for health check or root
     @app.route('/hello')
