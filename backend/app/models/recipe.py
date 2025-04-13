@@ -66,7 +66,20 @@ def init_db():
     -- CREATE INDEX IF NOT EXISTS idx_recipes_tags ON recipes (json_extract(tags, '$'));
     """
     db.executescript(schema)
-    print("Initialized the database.")
+    print("Initialized the recipes table.")
+
+    # Initialize the recipe_images table from its schema file
+    try:
+        # Assuming open_resource looks relative to the application root or blueprint location
+        # Adjust path if needed, e.g., 'data/schema_images.sql' if relative to project root
+        with current_app.open_resource('../data/schema_images.sql') as f:
+             images_schema = f.read().decode('utf8')
+             db.executescript(images_schema)
+        print("Initialized the recipe_images table.")
+    except FileNotFoundError:
+        print("Error: Could not find schema_images.sql. Make sure it's in the backend/data directory.")
+    except Exception as e:
+        print(f"Error initializing recipe_images table: {e}")
 
 
 def init_app(app):
