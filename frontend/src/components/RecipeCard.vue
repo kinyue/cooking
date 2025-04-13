@@ -1,7 +1,7 @@
 <template>
   <v-card class="mx-auto d-flex flex-column fill-height" flat border>
     <v-img
-      :src="recipe.image || 'https://via.placeholder.com/300x200/E0E0E0/BDBDBD?text=No+Image'"
+      :src="imageSrc"
       height="200px"
       cover
     ></v-img>
@@ -77,15 +77,16 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits } from 'vue'; // Import ref
+import { ref, onMounted } from 'vue'; // Import ref
 import { useRouter } from 'vue-router';
 import { useTodayMenuStore } from '@/stores/todayMenu';
-import api from '@/services/api';
+import api, { getRecipeImage } from '@/services/api';
 import DeleteConfirmation from '@/components/DeleteConfirmation.vue'; // Import the component
 
 // --- State ---
 const showDeleteDialog = ref(false);
 const isDeleting = ref(false);
+const imageSrc = ref('https://via.placeholder.com/300x200/E0E0E0/BDBDBD?text=No+Image');
 
 const props = defineProps({
   recipe: {
@@ -110,6 +111,15 @@ const props = defineProps({
 const emit = defineEmits(['recipeDeleted', 'update:snackbar']);
 const router = useRouter();
 const todayMenu = useTodayMenuStore();
+
+onMounted(async () => {
+  try {
+    const imageUrl = await getRecipeImage(props.recipe.id);
+    imageSrc.value = imageUrl;
+  } catch (error) {
+    console.error(`Failed to load image for recipe ${props.recipe.id}`);
+  }
+});
 
 // --- Methods ---
 const getTagColor = (tag) => {

@@ -255,5 +255,19 @@ def delete_recipe(recipe_id):
     return cursor.rowcount > 0 # Return True if a row was deleted
 
 
+def get_recipe_primary_image_data(recipe_id):
+    """Retrieves the primary image data (BLOB) for a given recipe ID."""
+    db = get_db()
+    cursor = db.execute(
+        "SELECT image_data FROM recipe_images WHERE recipe_id = ? AND is_primary = 1",
+        (recipe_id,)
+    )
+    image_row = cursor.fetchone()
+    if image_row and image_row['image_data']:
+        return image_row['image_data']
+    else:
+        return None
+
+
 # --- No CLI Commands in this file ---
 # All CLI commands have been moved to cli_commands.py

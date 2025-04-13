@@ -75,10 +75,22 @@ const fetchRandomRecipes = async (count = 3) => {
   }
 };
 
+// Function to fetch recipe image
+const getRecipeImage = async (recipeId) => {
+  try {
+    const response = await api.get(`/recipes/${recipeId}/image`, { responseType: 'blob' });
+    return URL.createObjectURL(response.data);
+  } catch (error) {
+    console.error(`API Error fetching image for recipe ${recipeId}:`, error);
+    throw error; // Re-throw the error
+  }
+};
+
 export {
   getRecipes,
   getRecipeById,
   fetchRandomRecipes, // Add to named exports
+  getRecipeImage, // Add to named exports
   createRecipe, 
   updateRecipe,
   deleteRecipe,
@@ -88,6 +100,7 @@ export default {
   getRecipes,
   getRecipeById,
   fetchRandomRecipes, // Add to default export
+  getRecipeImage, // Add to default export
   createRecipe, 
   updateRecipe,
   deleteRecipe

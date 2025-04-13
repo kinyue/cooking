@@ -4,7 +4,13 @@
     <v-row v-if="recipe && !loading" justify="center">
       <v-col cols="12" md="8">
         <v-card class="elevation-2">
-          <v-img src="https://picsum.photos/800/400?random" height="400" cover></v-img>
+          <v-img :src="imageSrc" height="400" cover>
+            <template v-slot:placeholder>
+              <div class="d-flex align-center justify-center fill-height">
+                <v-progress-circular color="grey-lighten-4" indeterminate></v-progress-circular>
+              </div>
+            </template>
+          </v-img>
 
           <v-card-title class="text-h4 font-weight-medium">
             {{ recipe.name }}
@@ -179,7 +185,7 @@
 
 <script>
 import { useRoute, useRouter } from 'vue-router';
-import { getRecipeById, deleteRecipe } from '@/services/api';
+import { getRecipeById, deleteRecipe, getRecipeImage } from '@/services/api'; // Import getRecipeImage
 import DeleteConfirmation from '@/components/DeleteConfirmation.vue'; // Import the component
 import { useTodayMenuStore } from '@/stores/todayMenu'; // Import the store
 
@@ -201,6 +207,7 @@ export default {
       recipe: null,
       loading: false,
       error: null,
+      imageSrc: 'https://via.placeholder.com/800x400/E0E0E0/BDBDBD?text=Loading+Image...', // Placeholder while loading
       dialog: {
         show: false,
         loading: false
@@ -226,21 +233,34 @@ export default {
     '$route.params.id': 'fetchRecipeDetails'
   },
   methods: {
-    async fetchRecipeDetails() {
-      this.loading = true;
-      this.error = null;
-      try {
-        // Access id directly via props now
-        const response = await getRecipeById(this.id); 
-        this.recipe = response.data;
-      } catch (error) {
-        console.error('Failed to fetch recipe details:', error);
-        this.error = error;
-      } finally {
-        this.loading = false;
-      }
-    },
-    editRecipe() {
+      async fetchRecipeDetails() {
+        this.loading = true;
+        this.error = null;
+        this.imageSrc = 'https://via.placeholder.com/800x400/E0E0E0/BDBDBD?text=Loading+Image...'; // Reset placeholder
+        try {
+          // Fetch recipe details
+          const response = await getRecipeById(this.id); 
+          this.recipe = response.data;
+
+          // Fetch image after getting recipe details
+          if (this.recipe) {
+            try {
+              const imageUrl = await getRecipeImage(this.id);
+              this.imageSrc = imageUrl;
+            } catch (imgError) {
+              console.error(`Failed to load image for recipe ${this.id}:`, imgError);
+              this.imageSrc = 'https://via.placeholder.com/800x400/E0E0E0/BDBDBD?text=No+Image'; // Fallback image
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch recipe details:', error);
+          this.error = error;
+          this.imageSrc = 'https://via.placeholder.com/800x400/E0E0E0/BDBDBD?text=Error'; // Error placeholder
+        } finally {
+          this.loading = false;
+        }
+      },
+      editRecipe() {
       // Navigate to edit recipe view
       this.router.push({ name: 'edit-recipe', params: { id: this.recipe.id } });
     },

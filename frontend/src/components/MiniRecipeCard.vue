@@ -3,7 +3,7 @@
     <v-card flat border>
       <div class="d-flex flex-column h-100">
         <v-img
-          :src="recipe.image"
+          :src="imageSrc"
           height="140"
           :alt="recipe.name"
           cover
@@ -68,13 +68,25 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, onMounted } from 'vue';
+import { getRecipeImage } from '@/services/api';
 
 const props = defineProps({
   recipe: {
     type: Object,
     required: true,
   },
+});
+
+const imageSrc = ref('https://via.placeholder.com/300x200/E0E0E0/BDBDBD?text=No+Image');
+
+onMounted(async () => {
+  try {
+    const imageUrl = await getRecipeImage(props.recipe.id);
+    imageSrc.value = imageUrl;
+  } catch (error) {
+    console.error(`Failed to load image for recipe ${props.recipe.id}`);
+  }
 });
 
 // Calculate total cooking time

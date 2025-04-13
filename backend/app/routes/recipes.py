@@ -164,3 +164,20 @@ def delete_recipe(id):
     except Exception as e:
         print(f"Error deleting recipe {id}: {e}")
         abort(500, description=f"Internal server error deleting recipe {id}.")
+
+
+
+@bp.route('/<int:id>/image', methods=['GET'])
+def get_recipe_image(id):
+    """Get the primary image for a recipe."""
+    try:
+        image_data = db_recipe.get_recipe_primary_image_data(id)
+        if image_data is None:
+            abort(404, description=f"No primary image found for recipe with id {id}.")
+        
+        # Return the image data as a binary response
+        # Assuming JPEG format, adjust if needed
+        return image_data, 200, {'Content-Type': 'image/jpeg'} 
+    except Exception as e:
+        print(f"Error fetching image for recipe {id}: {e}")
+        abort(500, description=f"Internal server error fetching image for recipe {id}.")
