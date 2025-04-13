@@ -4,7 +4,7 @@
 CREATE TABLE IF NOT EXISTS recipe_images (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     recipe_id INTEGER NOT NULL,
-    image_url TEXT NOT NULL,
+    image_data BLOB NOT NULL, -- Changed from image_url TEXT to store image data directly
     alt_text TEXT,
     is_primary INTEGER DEFAULT 0 CHECK(is_primary IN (0, 1)), -- Ensure only 0 or 1
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
