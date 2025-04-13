@@ -2,9 +2,7 @@
 # Recipe data model and database interaction functions
 import sqlite3
 import json
-import click # Import click for CLI commands
 from flask import current_app, g
-from flask.cli import with_appcontext # Helper for CLI commands
 
 def get_db():
     """Connects to the specific database."""
@@ -85,8 +83,7 @@ def init_db():
 def init_app(app):
     """Register database functions with the Flask app."""
     app.teardown_appcontext(close_db)
-    # Register the init-db command
-    app.cli.add_command(init_db_command)
+    # Note: All CLI command registrations moved to app factory (__init__.py)
 
 
 # --- CRUD Operations ---
@@ -258,11 +255,5 @@ def delete_recipe(recipe_id):
     return cursor.rowcount > 0 # Return True if a row was deleted
 
 
-# --- CLI Command ---
-
-@click.command('init-db')
-@with_appcontext
-def init_db_command():
-    """Clear existing data and create new tables."""
-    init_db()
-    click.echo('Initialized the database.')
+# --- No CLI Commands in this file ---
+# All CLI commands have been moved to cli_commands.py
