@@ -47,6 +47,18 @@
                 @submit="handleUpdateRecipe"
                 @cancel="goBack"
               />
+              <!-- Update Status Indicators -->
+              <v-overlay :model-value="isUpdating" class="align-center justify-center">
+                <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+              </v-overlay>
+              <v-snackbar v-model="showUpdateError" color="error" timeout="5000">
+                {{ updateErrorMsg }}
+                <template v-slot:actions>
+                  <v-btn color="white" variant="text" @click="showUpdateError = false">
+                    关闭
+                  </v-btn>
+                </template>
+              </v-snackbar>
             </div>
           </v-fade-transition>
         </div>
@@ -56,12 +68,10 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue'; // Import computed
 import { useRoute, useRouter } from 'vue-router';
 import RecipeForm from '@/components/RecipeForm.vue';
-import { getRecipeById } from '@/services/api';
-import { updateRecipe } from '@/services/api'; 
-// TODO: Import updateRecipe from api service when implemented
+import { getRecipeById, updateRecipe, uploadRecipeImage } from '@/services/api'; // Import uploadRecipeImage
 
 export default {
   name: 'EditRecipeView',
@@ -72,60 +82,95 @@ export default {
     const route = useRoute();
     const router = useRouter();
     const recipeData = ref(null);
-    const loading = ref(false);
+    const loading = ref(true); // Start loading initially
     const error = ref(null);
+    const isUpdating = ref(false); // State for update operation
+    const showUpdateError = ref(false);
+    const updateErrorMsg = ref('');
+
+    // Get recipe ID from route params safely
+    const recipeId = computed(() => route.params.id);
 
     const fetchRecipeData = async () => {
       loading.value = true;
-      error.value = null;
+      error.value = null; // Reset error before fetching
+      if (!recipeId.value) {
+          error.value = new Error("未在路由参数中找到菜谱ID。");
+          loading.value = false;
+          return;
+      }
       try {
-        const recipeId = route.params.id;
-        if (!recipeId) {
-          throw new Error("Recipe ID not found in route parameters.");
+        const response = await getRecipeById(recipeId.value);
+        // Ensure response.data exists and is an object
+        if (response && typeof response.data === 'object' && response.data !== null) {
+           recipeData.value = response.data;
+        } else {
+           // Handle cases where data might be missing or in unexpected format
+           throw new Error("从API接收到的菜谱数据格式无效。");
         }
-        const response = await getRecipeById(recipeId);
-        recipeData.value = response.data; 
       } catch (err) {
-        console.error("Failed to fetch recipe data for editing:", err);
-        error.value = err;
+        console.error("获取待编辑菜谱数据失败:", err);
+        error.value = err; // Set error state to display message
       } finally {
         loading.value = false;
       }
     };
 
-    const handleUpdateRecipe = async (updatedRecipeData) => {
-
-      if (!recipeData.value?.id) {
-         console.error("Cannot update recipe: ID is missing.");
-         alert("无法更新菜谱：缺少菜谱ID。");
-         return;
+    const handleUpdateRecipe = async ({ recipeData: updatedData, imageFile }) => {
+      if (!recipeId.value) {
+        updateErrorMsg.value = "无法更新：缺少菜谱ID。";
+        showUpdateError.value = true;
+        return;
       }
 
+      isUpdating.value = true;
+      showUpdateError.value = false;
+      updateErrorMsg.value = '';
+
+
       try {
-        await updateRecipe(recipeData.value.id, updatedRecipeData);
-        // Navigate on success
-        router.push({ name: 'recipe-detail', params: { id: recipeData.value.id } });
-      } catch (updateError) {
-        console.error("Failed to update recipe:", updateError);
-        // Handle update error (e.g., show a snackbar or alert)
-        alert(`更新失败: ${updateError.message || '请稍后重试'}`); 
+        // Step 1: Update recipe text data
+        // Pass only the updatedData part to updateRecipe
+        await updateRecipe(recipeId.value, updatedData); 
+        // updateSuccess = true; // Removed assignment to unused variable
+
+        // Step 2: If an image file was provided, upload it
+        if (imageFile) {
+          try {
+            await uploadRecipeImage(recipeId.value, imageFile);
+            // Image uploaded successfully
+          } catch (uploadError) {
+            console.error('图片上传失败:', uploadError);
+            // Even if image upload fails, the text data was updated.
+            // Show a specific error message but still navigate.
+            updateErrorMsg.value = `菜谱信息已更新，但图片上传失败: ${uploadError.message || '未知错误'}`;
+            showUpdateError.value = true;
+            // Do not throw here, allow navigation
+          }
+        }
+
+        // Step 3: Navigate only if the text update was successful
+        router.push({ name: 'recipe-detail', params: { id: recipeId.value } });
+
+      } catch (mainUpdateError) {
+        console.error("更新菜谱失败:", mainUpdateError);
+        updateErrorMsg.value = `更新失败: ${mainUpdateError.message || '请稍后重试'}`;
+        showUpdateError.value = true;
+      } finally {
+        isUpdating.value = false;
       }
     };
 
     const goBack = () => {
-      // Check if the previous page was a recipe detail page
-      const previousPath = window.history.state?.back;
-      const recipeId = route.params.id; // Get current recipe ID for comparison
-      
-      // Check if previousPath exists, includes '/recipes/', and is not the base '/recipes/' path
-      // Also ensure the previous path ID matches the current recipe ID to confirm it's the detail page for *this* recipe
-      if (previousPath && previousPath.includes(`/recipes/${recipeId}`)) {
-         router.back(); // Go back to the recipe detail page
+      // Navigate back to the recipe detail page if possible, otherwise home
+      if (recipeId.value) {
+        router.push({ name: 'recipe-detail', params: { id: recipeId.value } });
       } else {
-         router.push('/'); // Go back to the home page
+        router.push({ name: 'home' }); // Fallback to home
       }
     };
 
+    // Fetch data when the component mounts
     onMounted(() => {
       fetchRecipeData();
     });
@@ -134,6 +179,9 @@ export default {
       recipeData,
       loading,
       error,
+      isUpdating, // Expose update loading state
+      showUpdateError, // Expose error snackbar state
+      updateErrorMsg, // Expose error message
       handleUpdateRecipe,
       goBack,
     };

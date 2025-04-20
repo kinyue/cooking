@@ -51,12 +51,14 @@ const deleteRecipe = async (recipeId) => {
   }
 }
 
-// Function to create a new recipe
+// Function to create a new recipe (Sends JSON data)
 const createRecipe = async (recipeData) => {
   try {
-    // Correct path with trailing slash: Sends request to http://127.0.0.1:5000/api/recipes/
-    const response = await api.post('/recipes/', recipeData); 
-    return response.data; 
+    // Sends JSON request to http://127.0.0.1:5000/api/recipes/
+    // Backend route POST /api/recipes/ should expect JSON, potentially nested like { "recipeData": ... }
+    // Adjust the payload structure if needed based on backend expectation for JSON requests.
+    const response = await api.post('/recipes/', recipeData); // Sending the object directly
+    return response.data;
   } catch (error) {
     console.error('API Error creating recipe:', error);
     throw error; // Re-throw the error
@@ -75,6 +77,28 @@ const fetchRandomRecipes = async (count = 3) => {
   }
 };
 
+// Function to upload a recipe image
+const uploadRecipeImage = async (recipeId, imageFile) => {
+  const formData = new FormData();
+  formData.append('image', imageFile); // 'image' should match the backend expected field name
+
+  try {
+    // Note: We don't set Content-Type header here,
+    // axios will automatically set it to multipart/form-data with the correct boundary
+    const response = await api.post(`/recipes/${recipeId}/image`, formData, {
+      headers: {
+        // Remove the default 'Content-Type': 'application/json' for this request
+        'Content-Type': undefined,
+      }
+    });
+    return response.data; // Assuming backend returns info about the uploaded image
+  } catch (error) {
+    console.error(`API Error uploading image for recipe ${recipeId}:`, error);
+    throw error;
+  }
+};
+
+
 // Function to fetch recipe image
 const getRecipeImage = async (recipeId) => {
   try {
@@ -89,9 +113,10 @@ const getRecipeImage = async (recipeId) => {
 export {
   getRecipes,
   getRecipeById,
-  fetchRandomRecipes, // Add to named exports
-  getRecipeImage, // Add to named exports
-  createRecipe, 
+  fetchRandomRecipes,
+  getRecipeImage,
+  uploadRecipeImage, // Add upload function
+  createRecipe,
   updateRecipe,
   deleteRecipe,
 };
@@ -99,9 +124,10 @@ export {
 export default {
   getRecipes,
   getRecipeById,
-  fetchRandomRecipes, // Add to default export
-  getRecipeImage, // Add to default export
-  createRecipe, 
+  fetchRandomRecipes,
+  getRecipeImage,
+  uploadRecipeImage, // Add upload function
+  createRecipe,
   updateRecipe,
   deleteRecipe
 };

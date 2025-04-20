@@ -28,15 +28,36 @@
           hint="简单描述一下这道菜的特点"
         ></v-textarea>
 
-        <v-text-field
-          v-model="formData.image_url"
-          label="菜品图片链接"
-          type="url"
-          class="form-field"
+        <!-- Image Upload Section -->
+        <v-file-input
+          v-model="selectedImageFile"
+          label="上传菜谱图片"
+          accept="image/png, image/jpeg, image/gif"
+          prepend-icon="mdi-camera"
           variant="outlined"
-          prepend-icon="mdi-image"
-          placeholder="http://..."
-        ></v-text-field>
+          class="form-field mb-4"
+          @change="previewImage"
+          :clearable="true"
+          show-size
+        ></v-file-input>
+
+        <!-- Image Preview -->
+        <v-img
+          v-if="imagePreviewUrl"
+          :src="imagePreviewUrl"
+          max-height="200"
+          contain
+          class="mb-4 image-preview"
+        ></v-img>
+        <!-- Display existing image URL if editing and no new file selected -->
+         <v-img
+           v-else-if="isEditing && formData.image_url && !selectedImageFile"
+           :src="formData.image_url"
+           max-height="200"
+           contain
+           class="mb-4 image-preview"
+         ></v-img>
+
       </div>
     </div>
 
@@ -197,8 +218,8 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue';
-
+import { ref, watch, computed, onUnmounted } from 'vue';
+// Removed unused import: import { uploadRecipeImage } from '@/services/api';
 
 // Define props and emits for TypeScript support
 const props = defineProps({
@@ -226,7 +247,12 @@ const formData = ref({
   prep_time_minutes: null,
   cook_time_minutes: null,
   servings: null,
+  // image_url is still needed if editing an existing recipe
 });
+
+// Image Upload State
+const selectedImageFile = ref(null); // Holds the File object
+const imagePreviewUrl = ref(null); // Holds the data URL for preview
 
 // Textarea models for ingredients and instructions
 const ingredientsText = ref('');
@@ -283,22 +309,61 @@ watch(instructionsText, (newText) => {
     .filter(line => line);
 });
 
+// Image Preview Handler
+const previewImage = () => {
+  if (selectedImageFile.value) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      imagePreviewUrl.value = e.target.result;
+    };
+    reader.readAsDataURL(selectedImageFile.value);
+  } else {
+    // Clear preview if file is cleared
+    imagePreviewUrl.value = null;
+  }
+};
+
+// Clean up object URL on component unmount
+onUnmounted(() => {
+  if (imagePreviewUrl.value && imagePreviewUrl.value.startsWith('blob:')) {
+    URL.revokeObjectURL(imagePreviewUrl.value);
+  }
+});
 
 // Submit form handler
+const submitting = ref(false); // Add submitting state
+
 const submitForm = async () => {
+  submitting.value = true; // Start loading
   const { valid } = await form.value.validate();
   if (valid) {
-    // Prepare data for submission (clone to avoid modifying original ref directly)
-    const dataToSubmit = JSON.parse(JSON.stringify(formData.value));
+    try {
+      // 1. Prepare recipe data (excluding image file)
+      const recipeData = JSON.parse(JSON.stringify(formData.value));
+      // Remove image_url if a new file is selected, backend will handle image separately
+      // Keep image_url if editing and no new file is selected
+      if (selectedImageFile.value) {
+         delete recipeData.image_url; // Let backend handle image association
+      }
 
-    // Optional: Convert specific fields back to JSON strings if backend expects that
-    // dataToSubmit.ingredients = JSON.stringify(dataToSubmit.ingredients);
-    // dataToSubmit.instructions = JSON.stringify(dataToSubmit.instructions);
-    // dataToSubmit.tags = JSON.stringify(dataToSubmit.tags);
+      // 2. Emit submit event with recipe data (parent handles create/update)
+      // The parent component will call the create/update API and get the recipe ID
+      // We pass the selected image file along so the parent can upload it after creation/update
+      emit('submit', { recipeData, imageFile: selectedImageFile.value });
 
-    emit('submit', dataToSubmit);
+      // Reset image state after successful submission attempt (parent confirms success)
+      // selectedImageFile.value = null;
+      // imagePreviewUrl.value = null;
+
+    } catch (error) {
+       console.error('Error during form submission process:', error);
+       // Handle error display to user if needed
+    } finally {
+       submitting.value = false; // Stop loading regardless of outcome
+    }
   } else {
     console.log('Form validation failed'); // Log validation failure
+    submitting.value = false; // Stop loading if validation fails
   }
 };
 
@@ -308,16 +373,40 @@ const cancelForm = () => {
 };
 
 // Function to reset form (optional)
-// const resetForm = () => {
-//   form.value?.reset(); // Reset Vuetify form state
-//   form.value?.resetValidation();
-//   formData.value = { /* initial empty state */ };
-//   ingredientsText.value = '';
-//   instructionsText.value = '';
-// };
+// Function to reset form (optional, might be called by parent)
+const resetForm = () => {
+  form.value?.reset(); // Reset Vuetify form state
+  form.value?.resetValidation();
+  formData.value = {
+    name: '',
+    description: '',
+    image_url: '', // Keep for potential display when editing
+    ingredients: [],
+    instructions: [],
+    tags: [],
+    difficulty: null,
+    cuisine: '',
+    prep_time_minutes: null,
+    cook_time_minutes: null,
+    servings: null,
+  };
+  ingredientsText.value = '';
+  instructionsText.value = '';
+  selectedImageFile.value = null; // Reset file input
+  imagePreviewUrl.value = null; // Reset preview
+};
+
+// Expose resetForm if needed by parent
+defineExpose({ resetForm });
 
 </script>
 
 <style scoped>
 @import '@/assets/components/recipe-form.css';
+
+.image-preview {
+  border: 1px solid #eee;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+}
 </style>

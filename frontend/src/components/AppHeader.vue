@@ -150,16 +150,18 @@
 import { ref } from 'vue';
 import { useTodayMenuStore } from '@/stores/todayMenu';
 import TodayMenuDialog from '@/components/TodayMenuDialog.vue';
-import RandomRecipeDialog from '@/components/RandomRecipeDialog.vue'; // Import RandomRecipeDialog
-import RecipeForm from '@/components/RecipeForm.vue'; // Import RecipeForm
-import api from '@/services/api'; // Import api service
-import { useRouter } from 'vue-router'; // Import useRouter
+import RandomRecipeDialog from '@/components/RandomRecipeDialog.vue';
+import RecipeForm from '@/components/RecipeForm.vue';
+// Remove direct api import for create/upload, use composable instead
+// import api from '@/services/api';
+import { useRouter } from 'vue-router';
+import { useRecipeSubmit } from '@/composables/useRecipeSubmit'; // Import the composable
 
 const todayMenu = useTodayMenuStore();
 const showMenuDialog = ref(false);
-const showAddDialog = ref(false); // State for Add Recipe Dialog
-const isRandomRecipeDialogOpen = ref(false); // State for Random Recipe Dialog
-const router = useRouter(); // Get router instance
+const showAddDialog = ref(false);
+const isRandomRecipeDialogOpen = ref(false);
+const router = useRouter();
 
 // Snackbar state
 const snackbar = ref({
@@ -182,30 +184,38 @@ const handleClearChecked = () => {
   todayMenu.clearChecked();
 };
 
+// --- Use the composable for submission logic ---
+// Only destructure what's needed: submitError and submitRecipe
+const { error: submitError, submitRecipe } = useRecipeSubmit();
+
 // --- Methods for Add Recipe Dialog ---
-const handleAddRecipeSubmit = async (formData) => {
-  try {
-    const result = await api.createRecipe(formData);
+const handleAddRecipeSubmit = async (payload) => {
+  // Call the composable's submit function
+  const newRecipeId = await submitRecipe(payload);
+
+  if (newRecipeId) {
+    // Success
     showAddDialog.value = false;
-    // Show success snackbar
     snackbar.value = {
       show: true,
-      text: `菜谱 "${result.data.name}" 添加成功！`,
+      // We don't have the recipe name directly here anymore, use generic message
+      text: `新菜谱添加成功！ (ID: ${newRecipeId})`,
       color: 'success',
-      timeout: 3000
+      timeout: 3000,
     };
-    // Navigate back to the home page with a query param to trigger refresh
-    // Using Date.now() ensures the query value changes each time, reliably triggering watchers
-    router.push({ path: '/', query: { added: Date.now() } }); 
-  } catch (err) {
-    console.error("Failed to add recipe:", err);
-    // Show error snackbar
+    // Navigate to home page to trigger refresh
+    router.push({ path: '/', query: { added: Date.now() } });
+    // Or navigate to detail page:
+    // router.push({ name: 'recipe-detail', params: { id: newRecipeId } });
+  } else {
+    // Failure - error message is in submitError.value from the composable
     snackbar.value = {
       show: true,
-      text: `添加菜谱失败: ${err.response?.data?.description || err.message || '请稍后再试'}`,
+      text: `添加菜谱失败: ${submitError.value || '请稍后再试'}`,
       color: 'error',
-      timeout: 3000
+      timeout: 5000,
     };
+    // Keep the dialog open on error
   }
 };
 

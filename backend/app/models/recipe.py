@@ -194,29 +194,55 @@ def get_random_recipes(count=3):
 
 
 def add_recipe(data):
-    """Adds a new recipe to the database."""
+    """Adds a new recipe (text data only) to the database."""
     db = get_db()
-    cursor = db.execute(
-        """
-        INSERT INTO recipes (name, description, ingredients, instructions, image_url, tags, difficulty, cuisine, prep_time_minutes, cook_time_minutes, servings)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            data.get('name'),
-            data.get('description'),
-            json.dumps(data.get('ingredients', [])), # Ensure JSON format
-            json.dumps(data.get('instructions', [])), # Ensure JSON format
-            data.get('image_url'),
-            json.dumps(data.get('tags', [])), # Ensure JSON format
-            data.get('difficulty'),
-            data.get('cuisine'),
-            data.get('prep_time_minutes'),
-            data.get('cook_time_minutes'),
-            data.get('servings')
-        )
+    # Image data is handled by add_recipe_image, not here.
+
+    # Prepare data for the recipes table.
+    # Include image_url if it's provided as part of the text data (e.g., external URL)
+    # Otherwise, it will be NULL initially.
+    # Corrected tuple to match the 11 columns in the INSERT statement
+    recipe_data_tuple = (
+        data.get('name'),                       # 1. name
+        data.get('description'),                # 2. description
+        json.dumps(data.get('ingredients', [])), # 3. ingredients
+        json.dumps(data.get('instructions', [])),# 4. instructions
+        data.get('image_url'),                  # 5. image_url
+        json.dumps(data.get('tags', [])),       # 6. tags
+        data.get('difficulty'),                 # 7. difficulty
+        data.get('cuisine'),                    # 8. cuisine
+        data.get('prep_time_minutes'),          # 9. prep_time_minutes
+        data.get('cook_time_minutes'),          # 10. cook_time_minutes
+        data.get('servings')                    # 11. servings
     )
-    db.commit()
-    return cursor.lastrowid # Return the ID of the newly inserted recipe
+
+    cursor = None
+    try:
+        # Insert recipe text data
+        cursor = db.execute(
+            """
+            INSERT INTO recipes (name, description, ingredients, instructions, image_url, tags, difficulty, cuisine, prep_time_minutes, cook_time_minutes, servings)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            recipe_data_tuple
+        )
+        db.commit()
+        new_recipe_id = cursor.lastrowid
+        current_app.logger.info(f"Successfully added recipe text data (ID: {new_recipe_id}).")
+        return new_recipe_id # Return the ID of the newly inserted recipe
+
+    except sqlite3.Error as e:
+        # Use Flask logger for better visibility
+        current_app.logger.error(f"Database error in add_recipe (text data): {e}", exc_info=True)
+        if db:
+            db.rollback() # Rollback transaction on any database error
+        raise e # Re-raise to be caught by the route handler
+    except Exception as e:
+        # Catch other potential errors
+        current_app.logger.error(f"Unexpected error in add_recipe (text data): {e}", exc_info=True)
+        if db:
+            db.rollback() # Rollback transaction
+        raise e # Re-raise to be caught by the route handler
 
 
 def update_recipe(recipe_id, data):
@@ -267,6 +293,54 @@ def get_recipe_primary_image_data(recipe_id):
         return image_row['image_data']
     else:
         return None
+
+
+def add_recipe_image(recipe_id, image_data, alt_text=None, is_primary=True):
+    """
+    Adds an image to the recipe_images table for a specific recipe.
+    If is_primary is True, it first sets any existing primary image for that recipe to not primary.
+    """
+    """
+    Adds an image to the recipe_images table for a specific recipe.
+    If is_primary is True, it first sets any existing primary image for that recipe to not primary.
+    NOTE: This function now assumes it's called within an existing transaction
+          managed by the caller (e.g., add_recipe). It does not manage its own transaction.
+    """
+    db = get_db() # Get the connection (which should be in a transaction state)
+    cursor = None
+    # Removed try/except block and transaction management from here.
+    # Errors will propagate up to the caller (add_recipe) to handle rollback.
+
+    # If this image is intended to be the primary one, unset other primary images for this recipe first
+    if is_primary:
+            db.execute(
+                "UPDATE recipe_images SET is_primary = 0 WHERE recipe_id = ? AND is_primary = 1",
+                (recipe_id,)
+            )
+
+    # Insert the new image record (Corrected indentation)
+    cursor = db.execute(
+        """
+        INSERT INTO recipe_images (recipe_id, image_data, alt_text, is_primary)
+            VALUES (?, ?, ?, ?)
+            """,
+            (
+                recipe_id,
+                sqlite3.Binary(image_data), # Ensure data is treated as BLOB
+                alt_text,
+                1 if is_primary else 0
+            )
+        )
+    # Removed commit and rollback logic from here.
+    # Let the caller (add_recipe) handle commit/rollback for the entire operation.
+    # Errors will propagate up.
+    new_image_id = cursor.lastrowid if cursor else None
+    if new_image_id:
+        current_app.logger.info(f"Successfully added image (ID: {new_image_id}) for recipe {recipe_id}.")
+    else:
+        # This case might indicate an issue even without an exception, log it.
+        current_app.logger.warning(f"add_recipe_image for recipe {recipe_id} executed but did not return a lastrowid.")
+    return new_image_id
 
 
 # --- No CLI Commands in this file ---
