@@ -266,7 +266,8 @@ def update_recipe(recipe_id, data):
         return False # Nothing to update
 
     params.append(recipe_id)
-    query = f"UPDATE recipes SET {', '.join(set_clause)}, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+    # Rely on the database trigger to update updated_at
+    query = f"UPDATE recipes SET {', '.join(set_clause)} WHERE id = ?"
 
     cursor = db.execute(query, params)
     db.commit()

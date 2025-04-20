@@ -32,7 +32,8 @@ const getRecipeById = async (recipeId) => {
 // Function to update existing recipe by its ID with new data
 const updateRecipe = async (recipeId, recipeData) => {
   try {
-    const response = await api.put(`/recipes/${recipeId}`, recipeData);
+    // Wrap recipeData inside { recipeData: ... } to match backend expectation
+    const response = await api.put(`/recipes/${recipeId}`, { recipeData: recipeData });
     return response.data;
   } catch (error) {
     console.error(`API Error updating recipe ${recipeId}:`, error);
