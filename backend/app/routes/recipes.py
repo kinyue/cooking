@@ -15,14 +15,20 @@ def get_recipes():
     # Extract filter parameters from request query string
     filters = {
         'search': request.args.get('search'),
-        'tags': request.args.get('tags'), # Needs parsing if multiple tags
+        'ingredients': request.args.get('ingredients'), # Add ingredients filter
+        'tags': request.args.getlist('tags') if 'tags' in request.args else None, # Use getlist to handle multiple tags
         'difficulty': request.args.get('difficulty'),
         'cuisine': request.args.get('cuisine'),
+        'prep_time_min': request.args.get('prepTimeMin', type=int),
+        'prep_time_max': request.args.get('prepTimeMax', type=int),
+        'cook_time_min': request.args.get('cookTimeMin', type=int),
+        'cook_time_max': request.args.get('cookTimeMax', type=int),
+        'servings_min': request.args.get('servingsMin', type=int),
+        'servings_max': request.args.get('servingsMax', type=int),
         'sort': request.args.get('sort'),
         'order': request.args.get('order'),
-        # Add pagination params:
         'page': request.args.get('page', 1, type=int),
-        'limit': request.args.get('limit', limit_per_page, type=int), # Default limit to 8 per page
+        'limit': request.args.get('limit', limit_per_page, type=int),
     }
     # Ensure limit is positive
     if filters['limit'] <= 0:
