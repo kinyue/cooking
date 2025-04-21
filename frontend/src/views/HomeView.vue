@@ -35,7 +35,7 @@
 
   <!-- Global Snackbar -->
   <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000" location="top" elevation="4" rounded="lg"
-    variant="tonal" transition="slide-y-transition">
+    transition="slide-y-transition">
     <template v-slot:default>
       <div class="d-flex align-center">
         <v-icon :icon="snackbar.color === 'success' ? 'mdi-check-circle' : 'mdi-alert-circle'" start
@@ -79,8 +79,25 @@ const fetchRecipes = async (page = 1) => {
   loading.value = true;
   error.value = null;
   try {
-    // Pass page and limit to the API call
-    const response = await api.getRecipes({ page: page, limit: itemsPerPage });
+    // 构建筛选参数
+    const params = {
+      page,
+      limit: itemsPerPage,
+      ...route.query.search && { search: route.query.search },
+      ...route.query.ingredients && { ingredients: route.query.ingredients }, // Add ingredients param
+      ...route.query.tags && { tags: route.query.tags }, // Pass the array directly if it exists
+      ...route.query.difficulty && { difficulty: route.query.difficulty },
+      ...route.query.cuisine && { cuisine: route.query.cuisine },
+      ...route.query.prepTimeMin && { prepTimeMin: Number(route.query.prepTimeMin) },
+      ...route.query.prepTimeMax && { prepTimeMax: Number(route.query.prepTimeMax) },
+      ...route.query.cookTimeMin && { cookTimeMin: Number(route.query.cookTimeMin) },
+      ...route.query.cookTimeMax && { cookTimeMax: Number(route.query.cookTimeMax) },
+      ...route.query.servingsMin && { servingsMin: Number(route.query.servingsMin) },
+      ...route.query.servingsMax && { servingsMax: Number(route.query.servingsMax) }
+    };
+
+    // 调用API获取筛选后的数据
+    const response = await api.getRecipes(params);
     recipes.value = response.data; // The list of recipes for the current page
     // Update pagination state from the response
     if (response.pagination) {
@@ -128,22 +145,31 @@ const handleRecipeDeleted = async (recipeId) => {
 // Watch for changes in the current page and fetch new data
 watch(currentPage, (newPage, oldPage) => {
   // Avoid fetching again if the page number hasn't actually changed
-  // This can happen during initial setup or if the value is programmatically set without a real change
   if (newPage !== oldPage) {
     fetchRecipes(newPage);
-   }
- });
+  }
+});
  
- // Watch for the 'added' query parameter to refresh the list
- watch(() => route.query.added, (newVal) => {
-   if (newVal) {
-     fetchRecipes(1); // Refresh the first page
-     // Create a copy of the current query, remove 'added', then replace
-     const query = { ...route.query };
-     delete query.added;
-     router.replace({ query });
-   }
- }, { immediate: false }); // Don't run immediately on mount
+// Watch for the 'added' query parameter to refresh the list
+watch(() => route.query.added, (newVal) => {
+  if (newVal) {
+    fetchRecipes(1); // Refresh the first page
+    // Create a copy of the current query, remove 'added', then replace
+    const query = { ...route.query };
+    delete query.added;
+    router.replace({ query });
+  }
+}, { immediate: false }); // Don't run immediately on mount
+
+// Watch for filter changes in route query
+watch(() => route.query, (newQuery) => {
+  // 忽略仅包含 _t 参数的变化（这是为了确保路由更新而添加的时间戳）
+  const hasOnlyTimestamp = Object.keys(newQuery).length === 1 && newQuery._t;
+  if (!hasOnlyTimestamp) {
+    currentPage.value = 1; // 重置页码
+    fetchRecipes(1);
+  }
+}, { deep: true });
  
  // --- Lifecycle Hooks ---
  onMounted(() => {

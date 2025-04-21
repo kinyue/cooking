@@ -124,19 +124,85 @@ def get_all_recipes(filters=None, page=1, limit=8):
     # --- Filtering ---
     where_clauses = []
     if filters:
+        # 搜索条件
         if filters.get('search'):
             where_clauses.append("(name LIKE ? OR description LIKE ?)")
             term = f"%{filters['search']}%"
             params.extend([term, term])
-            count_params.extend([term, term]) # Add to count params as well
-        # TODO: Add more filters for tags, difficulty, cuisine etc.
-        # Example for tags (simple LIKE, might be slow):
-        # if filters.get('tags'):
-        #     tag_list = filters['tags'].split(',') # Assuming comma-separated
-        #     for tag in tag_list:
-        #         where_clauses.append("tags LIKE ?")
-        #         params.append(f'%"{tag.strip()}"%') # Search within JSON array string
-        #         count_params.append(f'%"{tag.strip()}"%')
+            count_params.extend([term, term])
+
+        # 食材筛选 (逗号分隔的字符串)
+        if filters.get('ingredients'):
+            ingredient_terms = [term.strip() for term in filters['ingredients'].split(',') if term.strip()]
+            if ingredient_terms:
+                ingredient_conditions = []
+                for term in ingredient_terms:
+                    # Search for the ingredient name within the JSON string
+                    # This assumes ingredients are stored like: '[{"name": "鸡蛋", ...}, {"name": "番茄", ...}]'
+                    ingredient_conditions.append("ingredients LIKE ?")
+                    param = f'%"{term}"%' # Basic search for the ingredient name as a string literal within the JSON
+                    params.append(param)
+                    count_params.append(param)
+                # Require ALL ingredients to be present
+                where_clauses.append(f"({' AND '.join(ingredient_conditions)})")
+
+        # 标签筛选 (Revised using JSON functions)
+        tags_filter = filters.get('tags')
+        if tags_filter: # Check for non-None AND non-empty list
+            # filters['tags'] is a non-empty list of tags like ['tag1', 'tag2']
+            tag_conditions = []
+            for tag in tags_filter:
+                # Use json_each to check if the tag exists in the JSON array 'tags'
+                # This finds recipes where *any* of the provided tags match.
+                tag_conditions.append("EXISTS (SELECT 1 FROM json_each(recipes.tags) WHERE json_each.value = ?)")
+                params.append(tag.strip()) # Add the tag itself as a parameter
+                count_params.append(tag.strip())
+            if tag_conditions:
+                # Combine conditions with OR: find recipes matching *any* of the tags
+                current_app.logger.debug(f"Tag Condition: {tag_conditions}") 
+                where_clauses.append(f"({' OR '.join(tag_conditions)})")
+
+        # 难度筛选
+        if filters.get('difficulty'):
+            where_clauses.append("difficulty = ?")
+            params.append(filters['difficulty'])
+            count_params.append(filters['difficulty'])
+
+        # 菜系筛选
+        if filters.get('cuisine'):
+            where_clauses.append("cuisine = ?")
+            params.append(filters['cuisine'])
+            count_params.append(filters['cuisine'])
+
+        # 准备时间范围
+        if filters.get('prep_time_min') is not None:
+            where_clauses.append("prep_time_minutes >= ?")
+            params.append(filters['prep_time_min'])
+            count_params.append(filters['prep_time_min'])
+        if filters.get('prep_time_max') is not None:
+            where_clauses.append("prep_time_minutes <= ?")
+            params.append(filters['prep_time_max'])
+            count_params.append(filters['prep_time_max'])
+
+        # 烹饪时间范围
+        if filters.get('cook_time_min') is not None:
+            where_clauses.append("cook_time_minutes >= ?")
+            params.append(filters['cook_time_min'])
+            count_params.append(filters['cook_time_min'])
+        if filters.get('cook_time_max') is not None:
+            where_clauses.append("cook_time_minutes <= ?")
+            params.append(filters['cook_time_max'])
+            count_params.append(filters['cook_time_max'])
+
+        # 份量范围
+        if filters.get('servings_min') is not None:
+            where_clauses.append("servings >= ?")
+            params.append(filters['servings_min'])
+            count_params.append(filters['servings_min'])
+        if filters.get('servings_max') is not None:
+            where_clauses.append("servings <= ?")
+            params.append(filters['servings_max'])
+            count_params.append(filters['servings_max'])
 
     if where_clauses:
         where_sql = " WHERE " + " AND ".join(where_clauses)

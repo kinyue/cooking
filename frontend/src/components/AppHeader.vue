@@ -16,8 +16,12 @@
 
     <v-spacer></v-spacer>
 
+    <!-- Filter button for larger screens -->
+    <v-btn icon @click="showFilterDrawer = true" class="header-button d-none d-sm-flex">
+      <v-icon>mdi-filter-variant</v-icon>
+    </v-btn>
+
     <!-- Use icon buttons directly on larger screens now -->
-    <!-- Modified dice button to open dialog -->
     <v-btn icon @click="isRandomRecipeDialogOpen = true" class="header-button d-none d-sm-flex">
       <v-icon>mdi-dice-5-outline</v-icon>
     </v-btn>
@@ -38,7 +42,10 @@
     </v-btn>
 
     <!-- Buttons for smaller screens -->
-     <!-- Modified dice button to open dialog -->
+    <!-- Filter button for smaller screens -->
+    <v-btn icon @click="showFilterDrawer = true" class="d-sm-none mx-1">
+      <v-icon>mdi-filter-variant</v-icon>
+    </v-btn>
     <v-btn icon @click="isRandomRecipeDialogOpen = true" class="d-sm-none mx-1">
       <v-icon>mdi-dice-5-outline</v-icon>
     </v-btn>
@@ -115,6 +122,12 @@
       </v-card>
     </v-dialog>
 
+    <!-- Filter Drawer -->
+    <FilterDrawer 
+      v-model="showFilterDrawer"
+      @apply="handleFilterApply"
+    />
+
     <!-- Snackbar for feedback -->
     <v-snackbar
       v-model="snackbar.show"
@@ -123,7 +136,6 @@
       location="top"
       elevation="4"
       rounded="lg"
-      variant="tonal"
       transition="slide-y-transition"
     >
       <template v-slot:default>
@@ -152,6 +164,7 @@ import { useTodayMenuStore } from '@/stores/todayMenu';
 import TodayMenuDialog from '@/components/TodayMenuDialog.vue';
 import RandomRecipeDialog from '@/components/RandomRecipeDialog.vue';
 import RecipeForm from '@/components/RecipeForm.vue';
+import FilterDrawer from '@/components/FilterDrawer.vue';
 // Remove direct api import for create/upload, use composable instead
 // import api from '@/services/api';
 import { useRouter } from 'vue-router';
@@ -161,6 +174,7 @@ const todayMenu = useTodayMenuStore();
 const showMenuDialog = ref(false);
 const showAddDialog = ref(false);
 const isRandomRecipeDialogOpen = ref(false);
+const showFilterDrawer = ref(false);
 const router = useRouter();
 
 // Snackbar state
@@ -221,6 +235,46 @@ const handleAddRecipeSubmit = async (payload) => {
 
 const handleCancelAdd = () => {
   showAddDialog.value = false;
+};
+
+// --- Methods for Filter Drawer ---
+const handleFilterApply = (filters) => {
+  // 将筛选条件转换为URL查询参数
+  const query = {
+    ...(filters.search && { search: filters.search }),
+    ...(filters.ingredientSearch && { ingredients: filters.ingredientSearch }), // Add ingredient search query param
+    ...(filters.tags?.length > 0 && { tags: filters.tags }), // Pass the array directly
+    ...(filters.difficulty && { difficulty: filters.difficulty }),
+    ...(filters.cuisine && { cuisine: filters.cuisine }),
+    ...(filters.prepTimeRange && { 
+      prepTimeMin: filters.prepTimeRange[0],
+      prepTimeMax: filters.prepTimeRange[1]
+    }),
+    ...(filters.cookTimeRange && {
+      cookTimeMin: filters.cookTimeRange[0],
+      cookTimeMax: filters.cookTimeRange[1]
+    }),
+    ...(filters.servings && {
+      servingsMin: filters.servings[0],
+      servingsMax: filters.servings[1]
+    }),
+    // 添加时间戳以确保路由更新
+    _t: Date.now()
+  };
+
+  // 更新路由以触发HomeView组件的数据刷新
+  router.push({ 
+    path: '/',
+    query
+  });
+
+  // 显示成功提示
+  snackbar.value = {
+    show: true,
+    text: '筛选条件已应用',
+    color: 'success',
+    timeout: 2000
+  };
 };
 
 </script>

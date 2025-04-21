@@ -2,6 +2,7 @@
 # Application factory and core initialization
 
 import os
+import logging # Add logging import
 from flask import Flask
 from flask_cors import CORS
 
@@ -44,6 +45,9 @@ def create_app(config_name=None):
     app.cli.add_command(init_db_command)
     app.cli.add_command(seed_recipes_command)
     app.cli.add_command(seed_images_command)
+
+    # Add debug log before publish
+    app.logger.setLevel(logging.DEBUG)
 
     # Add a simple route for health check or root
     @app.route('/hello')
