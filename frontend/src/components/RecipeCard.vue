@@ -20,6 +20,8 @@
           label
           :color="getTagColor(tag)"
           variant="tonal"
+          @click.stop="handleTagClick(tag)"
+          style="cursor: pointer;"
         >
           {{ tag }}
         </v-chip>
@@ -107,8 +109,8 @@ const props = defineProps({
   }
 });
 
-// Emits remain the same
-const emit = defineEmits(['recipeDeleted', 'update:snackbar']);
+// Emits updated to include tagClicked
+const emit = defineEmits(['recipeDeleted', 'update:snackbar', 'tagClicked']);
 const router = useRouter();
 const todayMenu = useTodayMenuStore();
 
@@ -163,6 +165,11 @@ const handleConfirmDelete = async () => {
   } finally {
     isDeleting.value = false;
   }
+};
+
+// --- Tag Click Logic ---
+const handleTagClick = (tag) => {
+  emit('tagClicked', tag);
 };
 
 // --- Add to Today Logic ---

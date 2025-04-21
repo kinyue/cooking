@@ -213,7 +213,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { debounce } from 'lodash';
 
 const props = defineProps({
@@ -224,6 +225,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue', 'apply']);
+const route = useRoute(); // Get the current route
 
 const drawer = computed({
   get: () => props.modelValue,
@@ -250,6 +252,47 @@ const filters = ref({
   cookTimeRange: [0, 90],
   servings: [1, 4]
 });
+
+// Function to initialize filters from route query
+const initializeFiltersFromRoute = () => {
+  const query = route.query;
+  filters.value = {
+    search: query.search || '',
+    ingredientSearch: query.ingredients || '', // Initialize ingredient search
+    tags: query.tags ? (Array.isArray(query.tags) ? query.tags : [query.tags]) : [], // Handle single tag string or array
+    difficulty: query.difficulty || null,
+    cuisine: query.cuisine || null,
+    prepTimeRange: [
+      query.prepTimeMin ? Number(query.prepTimeMin) : 0,
+      query.prepTimeMax ? Number(query.prepTimeMax) : 60
+    ],
+    cookTimeRange: [
+      query.cookTimeMin ? Number(query.cookTimeMin) : 0,
+      query.cookTimeMax ? Number(query.cookTimeMax) : 90
+    ],
+    servings: [
+      query.servingsMin ? Number(query.servingsMin) : 1,
+      query.servingsMax ? Number(query.servingsMax) : 4
+    ]
+  };
+};
+
+// Watch for drawer opening to initialize filters
+watch(drawer, (newValue) => {
+  if (newValue) {
+    initializeFiltersFromRoute();
+  }
+});
+
+// Watch for route query changes to update filters (specifically tags for now)
+watch(() => route.query.tags, (newTags) => {
+  // Update the filter state only if the drawer is open or if the route changes
+  // This prevents overwriting user input in the drawer if the route changes while it's closed.
+  // However, for tag clicks, we *want* the drawer to reflect the change immediately if opened later.
+  // So, we update the filter state regardless of drawer state for tags.
+  filters.value.tags = newTags ? (Array.isArray(newTags) ? newTags : [newTags]) : [];
+}, { deep: true }); // Use deep watch if query structure is complex, though just watching tags might be enough
+
 
 // 验证函数
 const validatePrepTimeMin = () => {

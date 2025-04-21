@@ -4,7 +4,12 @@
 
     <v-row class="mt-4"> <!-- Added margin-top to compensate for removed header row -->
       <v-col v-for="recipe in recipes" :key="recipe.id" cols="12" sm="6" md="4" lg="3">
-        <RecipeCard :recipe="recipe" @recipeDeleted="handleRecipeDeleted" v-model:snackbar="snackbar" />
+        <RecipeCard 
+          :recipe="recipe" 
+          @recipeDeleted="handleRecipeDeleted" 
+          @tagClicked="handleTagClicked" 
+          v-model:snackbar="snackbar" 
+        />
       </v-col>
 
       <v-col v-if="loading" cols="12" class="text-center">
@@ -138,6 +143,12 @@ const handleRecipeDeleted = async (recipeId) => {
     text: `菜谱 "${deletedRecipeName}" 已删除`,
     color: 'success'
   };
+};
+
+// Handler for tag click from RecipeCard
+const handleTagClicked = (tag) => {
+  // Update the route query to filter by the clicked tag
+  router.push({ query: { ...route.query, tags: tag, _t: Date.now() } }); // Add timestamp to force update if query is the same
 };
 
 

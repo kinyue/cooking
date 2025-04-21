@@ -66,7 +66,16 @@
 
             <!-- Tags -->
             <v-chip-group class="mt-6">
-              <v-chip v-for="tag in recipe.tags" :key="tag" label color="primary" variant="flat" class="ma-1">
+              <v-chip 
+                v-for="tag in recipe.tags" 
+                :key="tag" 
+                label 
+                color="primary" 
+                variant="flat" 
+                class="ma-1"
+                @click.stop="handleTagClick(tag)"
+                style="cursor: pointer;"
+              >
                 {{ tag }}
               </v-chip>
             </v-chip-group>
@@ -316,6 +325,11 @@ export default {
           timeout: 3000
         };
       }
+    },
+    // Method to handle tag click
+    handleTagClick(tag) {
+      // Navigate back to home view and apply the filter
+      this.router.push({ name: 'home', query: { tags: tag } });
     },
   },
 };
