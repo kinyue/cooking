@@ -116,15 +116,90 @@ const getRecipeImage = async (recipeId) => {
   }
 };
 
+// --- Daily Menu API Calls ---
+
+/**
+ * Fetches the latest menu and available versions for a specific date.
+ * @param {string} date - The date in 'YYYY-MM-DD' format.
+ * @returns {Promise<object>} - Promise resolving to { latest_menu: object|null, versions: array }
+ */
+const fetchDailyMenu = async (date) => {
+  try {
+    const response = await api.get('/daily-menus', { params: { date } });
+    return response.data;
+  } catch (error) {
+    console.error(`API Error fetching daily menu for date ${date}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches a list of all dates that have saved menus.
+ * @returns {Promise<string[]>} - Promise resolving to an array of date strings ['YYYY-MM-DD', ...]
+ */
+const fetchDatesWithMenus = async () => {
+  try {
+    const response = await api.get('/daily-menus/dates');
+    return response.data.dates; // Assuming backend returns { "dates": [...] }
+  } catch (error) {
+    console.error('API Error fetching dates with menus:', error);
+    throw error;
+  }
+};
+
+/**
+ * Saves a new menu version for a specific date.
+ * @param {string} date - The date in 'YYYY-MM-DD' format.
+ * @param {Array<object>} menuData - Array of recipes, e.g., [{ recipe_id: 1, meal_type: 'Lunch' }, ...]
+ * @param {boolean} overwrite - Whether to overwrite version 1 if it exists.
+ * @returns {Promise<object>} - Promise resolving to the backend response (e.g., { message: string, new_menu_id: int, saved_menu: object })
+ */
+const saveDailyMenu = async (date, menuData, overwrite = false) => {
+  try {
+    // Ensure menuData is always an array, even if empty
+    const recipesPayload = Array.isArray(menuData) ? menuData : [];
+    const response = await api.post('/daily-menus',
+      { recipes: recipesPayload }, // Request body
+      { params: { date, overwrite } } // Query parameters
+    );
+    return response.data;
+  } catch (error) {
+    console.error(`API Error saving daily menu for date ${date}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches the details of a specific menu version by its ID. (Optional)
+ * @param {number} menuId - The ID of the daily_menu record.
+ * @returns {Promise<object>} - Promise resolving to { version_info: object, recipes: array }
+ */
+const fetchMenuById = async (menuId) => {
+  try {
+    const response = await api.get(`/daily-menus/${menuId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`API Error fetching menu version ID ${menuId}:`, error);
+    throw error;
+  }
+};
+
+// --- End Daily Menu API Calls ---
+
+
 export {
   getRecipes,
   getRecipeById,
   fetchRandomRecipes,
   getRecipeImage,
-  uploadRecipeImage, // Add upload function
+  uploadRecipeImage,
   createRecipe,
   updateRecipe,
   deleteRecipe,
+  fetchDailyMenu,
+  fetchDatesWithMenus,
+  saveDailyMenu,
+  fetchMenuById,
 };
 
 export default {
@@ -132,8 +207,12 @@ export default {
   getRecipeById,
   fetchRandomRecipes,
   getRecipeImage,
-  uploadRecipeImage, // Add upload function
+  uploadRecipeImage,
   createRecipe,
   updateRecipe,
-  deleteRecipe
+  deleteRecipe,
+  fetchDailyMenu,
+  fetchDatesWithMenus,
+  saveDailyMenu,
+  fetchMenuById,
 };

@@ -40,6 +40,10 @@
         <v-icon>mdi-silverware-fork-knife</v-icon>
       </v-badge>
     </v-btn>
+    <!-- Calendar Button for larger screens -->
+    <v-btn icon @click="openCalendar" class="header-button d-none d-sm-flex">
+      <v-icon>mdi-calendar-month-outline</v-icon>
+    </v-btn>
 
     <!-- Buttons for smaller screens -->
     <!-- Filter button for smaller screens -->
@@ -63,6 +67,10 @@
       >
         <v-icon>mdi-silverware-fork-knife</v-icon>
       </v-badge>
+    </v-btn>
+    <!-- Calendar Button for smaller screens -->
+    <v-btn icon @click="openCalendar" class="d-sm-none mx-1">
+      <v-icon>mdi-calendar-month-outline</v-icon>
     </v-btn>
 
     <!-- <v-menu offset-y>
@@ -98,14 +106,13 @@
       </v-list>
     </v-menu> -->
 
-    <!-- Today's Menu Dialog -->
+    <!-- Today's Menu Dialog - No longer needs items prop or old event listeners -->
     <TodayMenuDialog
       v-model="showMenuDialog"
-      :items="todayMenu.allItems"
-      @remove="handleRemoveRecipe"
-      @clear-all="handleClearAll"
-      @clear-checked="handleClearChecked"
+      @update:snackbar="snackbar = $event" 
     />
+    <!-- Note: Pass snackbar updates if TodayMenuDialog emits them -->
+    <!-- If TodayMenuDialog handles its own snackbar, remove @update:snackbar -->
 
     <!-- Random Recipe Dialog -->
     <RandomRecipeDialog v-model="isRandomRecipeDialogOpen" />
@@ -155,11 +162,32 @@
       </template>
     </v-snackbar>
 
+    <!-- Calendar Dialog -->
+    <v-dialog v-model="showCalendarDialog" width="auto">
+      <v-card>
+        <v-card-title>选择日期查看菜单</v-card-title>
+        <v-date-picker
+          v-model="selectedDate"
+          @update:modelValue="handleDateSelect"
+          :events="datesWithMenus"
+          event-color="primary"
+          color="primary"
+          show-adjacent-months
+          hide-header
+          class="ma-2"
+        ></v-date-picker>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn text @click="showCalendarDialog = false">关闭</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
   </v-app-bar>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue'; // Import computed
 import { useTodayMenuStore } from '@/stores/todayMenu';
 import TodayMenuDialog from '@/components/TodayMenuDialog.vue';
 import RandomRecipeDialog from '@/components/RandomRecipeDialog.vue';
@@ -177,6 +205,11 @@ const isRandomRecipeDialogOpen = ref(false);
 const showFilterDrawer = ref(false);
 const router = useRouter();
 
+// --- Calendar Dialog State & Logic ---
+const showCalendarDialog = ref(false);
+const selectedDate = ref(new Date()); // Initialize with today or null
+const datesWithMenus = computed(() => todayMenu.daysWithSavedMenu); // Get dates from store
+
 // Snackbar state
 const snackbar = ref({
   show: false,
@@ -185,17 +218,36 @@ const snackbar = ref({
   timeout: 3000
 });
 
-// Methods for TodayMenuDialog
-const handleRemoveRecipe = (recipeId) => {
-  todayMenu.removeRecipe(recipeId);
+// Remove unused methods related to old TodayMenuDialog events
+// const handleRemoveRecipe = (recipeId) => { ... };
+// const handleClearAll = () => { ... };
+// const handleClearChecked = () => { ... };
+
+// --- Calendar Dialog Methods ---
+const openCalendar = async () => {
+  // Load dates with menus when opening the calendar
+  await todayMenu.loadDatesWithMenus();
+  // Ensure selectedDate is initialized (e.g., to today or store's current date)
+  selectedDate.value = new Date(todayMenu.currentDate); // Sync with store's current date
+  showCalendarDialog.value = true;
 };
 
-const handleClearAll = () => {
-  todayMenu.clearAll();
-};
+const handleDateSelect = async (date) => {
+  if (!date) return;
+  // Format the selected date (assuming 'date' is a Date object from v-date-picker)
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const dateString = `${year}-${month}-${day}`;
 
-const handleClearChecked = () => {
-  todayMenu.clearChecked();
+  // Update store's state for the viewed historical date
+  // NOTE: We are NOT loading the data here, the target view/dialog will do that.
+  // We just set the date context in the store if needed, or pass it via route param.
+  // Let's assume the target view will use the route param.
+
+  // Close calendar and navigate to the historical menu view
+  showCalendarDialog.value = false;
+  router.push({ name: 'historical-menu', params: { date: dateString } });
 };
 
 // --- Use the composable for submission logic ---
