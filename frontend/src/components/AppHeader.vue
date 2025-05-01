@@ -66,7 +66,7 @@
         <v-icon>mdi-silverware-fork-knife</v-icon>
       </v-badge>
     </v-btn>
-    <v-btn icon @click="openCalendar" class="d-sm-none">
+    <v-btn icon @click="openCalendar" class="d-sm-none calendar-button-sm"> 
       <v-icon>mdi-calendar-month-outline</v-icon>
     </v-btn>
 
@@ -135,6 +135,7 @@
           @update:month="handleMonthChange"
           color="primary"
           hide-header
+          show-adjacent-months
           class="ma-2 custom-calendar-highlight"
           ref="datePickerRef" 
         ></v-date-picker> <!-- Removed :events and event-color -->

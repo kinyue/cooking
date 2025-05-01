@@ -102,3 +102,8 @@
    background-color: #E8F5E9 !important;
    color: #1B5E20 !important;
 }
+
+/* Add right margin to the calendar button specifically on small screens */
+.calendar-button-sm {
+  margin-right: 8px !important; /* Adjust value as needed, use !important if necessary to override Vuetify defaults */
+}
