@@ -12,13 +12,12 @@
         </v-btn>
       </v-toolbar>
 
-      <!-- Loading and Error States -->
+      <!-- Loading State -->
       <v-progress-linear indeterminate color="primary" v-if="isLoading"></v-progress-linear>
-      <v-alert type="error" v-if="errorMessage" class="ma-4">
-        {{ errorMessage }}
-      </v-alert>
 
-      <v-card-text class="pa-6" v-if="!isLoading && !errorMessage">
+
+      <!-- Show content when not loading, regardless of error -->
+      <v-card-text class="pa-6" v-if="!isLoading">
         <!-- Use menuItems (currentWorkingMenuItems) from store -->
         <div v-if="menuItems.length === 0" class="empty-state pa-8 text-center">
           <v-icon icon="mdi-playlist-plus" size="64" color="grey-lighten-1" class="mb-4"></v-icon>
@@ -140,7 +139,8 @@
 
       <v-divider v-if="menuItems.length > 0"></v-divider>
 
-      <v-card-actions v-if="menuItems.length > 0" class="pa-4">
+      <!-- Apply flex-wrap and justify-space-between for responsive actions -->
+      <v-card-actions v-if="menuItems.length > 0" class="pa-4 d-flex flex-wrap justify-space-between">
         <!-- Save Menu Button -->
         <v-btn
           variant="elevated"
@@ -149,25 +149,26 @@
           :loading="isSaving"
           :disabled="isSaving"
           prepend-icon="mdi-content-save"
-          class="mr-2"
+          class="mr-2 mb-2"
         >
-          保存菜单
+          保存
         </v-btn>
-        <v-btn variant="tonal" color="primary" @click="copyToClipboard" prepend-icon="mdi-content-copy" class="mr-2">
-          复制清单
+        <v-btn variant="tonal" color="primary" @click="copyToClipboard" prepend-icon="mdi-content-copy" class="mr-2 mb-2"> <!-- Add mb-2 -->
+          复制
         </v-btn>
-        <v-btn variant="tonal" color="success" @click="exportList" prepend-icon="mdi-file-export-outline">
-          导出清单
+        <v-btn variant="tonal" color="success" @click="exportList" prepend-icon="mdi-file-export-outline" class="mb-2 mb-2"> <!-- Add mb-2, remove mr-2 if spacer is removed -->
+          导出
         </v-btn>
-        <v-spacer></v-spacer>
+        <!-- Spacer might not be needed with justify-space-between, but keep for now or adjust alignment -->
+        <v-spacer class="d-none d-sm-flex"></v-spacer> <!-- Hide spacer on xs screens -->
         <v-btn variant="outlined" color="error" @click="confirmClearAll" prepend-icon="mdi-playlist-remove"
-          class="mr-2">
-          清空菜单
+          class="mr-2 mb-2"> <!-- Add mb-2 -->
+          清空
         </v-btn>
         <!-- Disable button based on hasCheckedItems computed property -->
         <v-btn variant="elevated" color="error" @click="clearChecked" :disabled="!hasCheckedItems"
-          prepend-icon="mdi-delete-sweep">
-          移除已选
+          prepend-icon="mdi-delete-sweep" class="mb-2"> <!-- Add mb-2 -->
+          移除
         </v-btn>
       </v-card-actions>
       </v-card>
@@ -332,7 +333,6 @@ const menuItems = computed(() => todayMenuStore.currentWorkingMenuItems); // Use
 // menuDate is not needed here as this dialog always shows the current working menu
 // const menuDate = computed(() => todayMenuStore.menuDate);
 const isLoading = computed(() => todayMenuStore.loadingStatus); // Keep loading state (for saving/maybe future loading)
-const errorMessage = computed(() => todayMenuStore.errorMessage); // Keep error message
 // Remove version-related computed properties
 // const menuVersions = computed(() => todayMenuStore.availableVersions);
 // const currentSelectedVersionId = computed(() => todayMenuStore.selectedVersionId);
@@ -403,7 +403,7 @@ const closeDialog = () => {
 
 // Use store action to remove recipe LOCALLY
 const removeRecipe = (recipeId) => {
-  todayMenuStore.removeRecipeFromCurrentMenu(recipeId);
+  todayMenuStore. removeRecipeFromTodayWorkingMenu(recipeId);
   // Also update local checked state if the removed item was checked
   if (localCheckedState.value[recipeId]) {
       delete localCheckedState.value[recipeId];
@@ -429,7 +429,7 @@ const toggleAllRecipes = () => {
 // TODO: Adapt clear logic
 const confirmClearAll = () => {
   // Option 1: Clear only local state
-  todayMenuStore.clearCurrentMenu();
+  todayMenuStore.clearTodayWorkingMenu();
   showSnackbar('当前菜单已清空（未保存）', 'info');
   // Option 2: Show confirmation then potentially call backend delete? (More complex)
 };
@@ -439,7 +439,7 @@ const clearChecked = () => {
                            .filter(([, isChecked]) => isChecked)
                            .map(([id]) => parseInt(id));
     checkedIds.forEach(id => {
-        todayMenuStore.removeRecipeFromCurrentMenu(id);
+        todayMenuStore.removeRecipeFromTodayWorkingMenu(id);
     });
     showSnackbar('已移除选中的菜谱（未保存）', 'info');
 };

@@ -31,8 +31,8 @@
     </v-btn>
     <v-btn icon @click="showMenuDialog = true" class="header-button d-none d-sm-flex">
       <v-badge
-        :content="todayMenu.count" 
-        :model-value="todayMenu.count > 0"
+        :content="todayMenu.currentWorkingMenuCount" 
+        :model-value="todayMenu.currentWorkingMenuCount > 0"
         color="error"
         floating
         overlap 
@@ -45,22 +45,22 @@
       <v-icon>mdi-calendar-month-outline</v-icon>
     </v-btn>
 
-    <!-- Buttons for smaller screens -->
+    <!-- Buttons for smaller screens - Remove mx-1 for tighter spacing -->
     <!-- Filter button for smaller screens -->
-    <v-btn icon @click="showFilterDrawer = true" class="d-sm-none mx-1">
+    <v-btn icon @click="showFilterDrawer = true" class="d-sm-none">
       <v-icon>mdi-filter-variant</v-icon>
     </v-btn>
-    <v-btn icon @click="isRandomRecipeDialogOpen = true" class="d-sm-none mx-1">
+    <v-btn icon @click="isRandomRecipeDialogOpen = true" class="d-sm-none">
       <v-icon>mdi-dice-5-outline</v-icon>
     </v-btn>
     <!-- Add Recipe Button for smaller screens -->
-    <v-btn icon @click="showAddDialog = true" class="d-sm-none mx-1">
+    <v-btn icon @click="showAddDialog = true" class="d-sm-none">
       <v-icon>mdi-hamburger-plus</v-icon>
     </v-btn>
-    <v-btn icon @click="showMenuDialog = true" class="d-sm-none mx-1">
+    <v-btn icon @click="showMenuDialog = true" class="d-sm-none">
       <v-badge
-        :content="todayMenu.count" 
-        :model-value="todayMenu.count > 0"
+        :content="todayMenu.currentWorkingMenuCount" 
+        :model-value="todayMenu.currentWorkingMenuCount > 0"
         color="error"
         floating
         overlap 
@@ -69,7 +69,7 @@
       </v-badge>
     </v-btn>
     <!-- Calendar Button for smaller screens -->
-    <v-btn icon @click="openCalendar" class="d-sm-none mx-1">
+    <v-btn icon @click="openCalendar" class="d-sm-none">
       <v-icon>mdi-calendar-month-outline</v-icon>
     </v-btn>
 
@@ -226,7 +226,7 @@ const snackbar = ref({
 // --- Calendar Dialog Methods ---
 const openCalendar = async () => {
   // Load dates with menus when opening the calendar
-  await todayMenu.loadDatesWithMenus();
+  await todayMenu.loadDatesWithHistoricalMenus();
   // Ensure selectedDate is initialized (e.g., to today or store's current date)
   selectedDate.value = new Date(todayMenu.currentDate); // Sync with store's current date
   showCalendarDialog.value = true;
