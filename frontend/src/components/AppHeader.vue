@@ -134,7 +134,6 @@
           @update:modelValue="handleDateSelect"
           @update:month="handleMonthChange"
           color="primary"
-          show-adjacent-months
           hide-header
           class="ma-2 custom-calendar-highlight"
           ref="datePickerRef" 
@@ -336,21 +335,43 @@ const handleMonthChange = async (monthIndex) => { // Renamed parameter for clari
 
 
 const handleDateSelect = async (date) => {
+  // Ensure 'date' is a valid Date object
   if (!(date instanceof Date)) {
-      try {
-          date = new Date(date);
-          if (isNaN(date.getTime())) throw new Error("Invalid Date");
-      } catch (e) {
-          console.error("Could not convert selected value to Date:", date);
-          return;
-      }
+    try {
+      date = new Date(date);
+      if (isNaN(date.getTime())) throw new Error("Invalid Date object received");
+    } catch (e) {
+      console.error("Could not convert selected value to Date:", date, e);
+      snackbar.value = { show: true, text: '无效的日期选择', color: 'error', timeout: 3000 };
+      return;
+    }
   }
+
+  // Format the selected date to 'YYYY-MM-DD'
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   const dateString = `${year}-${month}-${day}`;
-  showCalendarDialog.value = false;
-  router.push({ name: 'historical-menu', params: { date: dateString } });
+
+  // Get the list of dates that have menus (already loaded for the current month view)
+  const datesWithMenus = todayMenu.calendarMonthMenuDates;
+
+  // Check if the selected date string exists in the list
+  if (Array.isArray(datesWithMenus) && datesWithMenus.includes(dateString)) {
+    // If the date has a menu, close the dialog and navigate
+    showCalendarDialog.value = false;
+    router.push({ name: 'historical-menu', params: { date: dateString } });
+  } else {
+    // If the date does not have a menu, show a snackbar message and do not navigate
+    console.log(`Date ${dateString} selected, but no menu found in datesWithMenus:`, datesWithMenus);
+    snackbar.value = {
+      show: true,
+      text: `日期 ${dateString} 没有已保存的菜单`,
+      color: 'info', // Use 'info' or 'warning' color
+      timeout: 3000
+    };
+    // Keep the calendar dialog open so the user can select another date
+  }
 };
 
 // --- Use the composable for submission logic ---
