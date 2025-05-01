@@ -130,8 +130,8 @@
               icon="mdi-silverware-fork-knife" 
               size="small" 
               variant="text" 
-              :color="todayMenu.hasRecipe(recipe.id) ? 'grey' : 'green-lighten-2'" 
-              :disabled="todayMenu.hasRecipe(recipe.id)"
+              :color="todayMenu.hasRecipeInWorkingMenu(recipe.id) ? 'grey' : 'green-lighten-2'" 
+              :disabled="todayMenu.hasRecipeInWorkingMenu(recipe.id)"
               @click.stop="addToToday"
             ></v-btn>
           </v-card-actions>

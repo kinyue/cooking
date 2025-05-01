@@ -24,11 +24,13 @@ export const useTodayMenuStore = defineStore('todayMenu', () => {
   const selectedHistoricalVersionId = ref(null); // Stores the ID of the viewed version
 
   // State for calendar highlighting
-  const datesWithHistoricalMenus = ref([]); // Stores ['YYYY-MM-DD', ...]
+  const datesWithHistoricalMenus = ref([]); // Keep for now, might be used elsewhere
+  const calendarMonthMenuDates = ref([]); // NEW: Stores ['YYYY-MM-DD', ...] for the currently viewed calendar month
 
   // General state
   const isLoading = ref(false);
   const error = ref(null);
+  const isLoadingCalendarDates = ref(false); // NEW: Specific loading state for calendar dates
 
   // --- Getters ---
 
@@ -47,11 +49,37 @@ export const useTodayMenuStore = defineStore('todayMenu', () => {
   const historicalVersionInfo = computed(() => viewedHistoricalMenu.value?.version_info || null);
 
   // Getters for Calendar
-  const daysWithSavedMenu = computed(() => datesWithHistoricalMenus.value);
+  // MODIFIED: Convert date strings to Date objects for v-date-picker events
+  const daysWithSavedMenu = computed(() => {
+    // Ensure calendarMonthMenuDates.value is an array before mapping
+    if (!Array.isArray(calendarMonthMenuDates.value)) {
+      console.warn('calendarMonthMenuDates is not an array:', calendarMonthMenuDates.value);
+      return [];
+    }
+    return calendarMonthMenuDates.value.map(dateString => {
+      try {
+        // 分割日期字符串，确保使用本地时间创建 Date 对象
+        const [year, month, day] = dateString.split('-').map(Number);
+        // 月份需要减1因为 Date 构造函数中月份是从0开始的
+        const date = new Date(year, month - 1, day);
+        
+        if (isNaN(date.getTime())) {
+          console.warn(`Invalid date created from string: ${dateString}`);
+          return null;
+        }
+        
+        return date;
+      } catch (e) {
+        console.error(`Error creating date from string: ${dateString}`, e);
+        return null;
+      }
+    }).filter(Boolean); // 过滤掉无效的日期
+  });
 
   // General Getters
   const loadingStatus = computed(() => isLoading.value);
   const errorMessage = computed(() => error.value);
+  const isLoadingCalendar = computed(() => isLoadingCalendarDates.value); // NEW Getter
 
   // --- Actions ---
 
@@ -134,22 +162,49 @@ export const useTodayMenuStore = defineStore('todayMenu', () => {
     }
   }
 
-  // Actions for "Historical Menus"
+  // Actions for "Historical Menus" & Calendar
   async function loadDatesWithHistoricalMenus() {
-    // Avoid reloading if already loaded? Or always refresh? Refreshing for now.
-    isLoading.value = true; // Consider a more specific loading state like isLoadingDates
+    // This loads ALL dates, keep it if needed elsewhere, but calendar will use the new action.
+    isLoading.value = true; // Or a more specific loader
     error.value = null;
     try {
       const dates = await apiService.fetchDatesWithMenus();
       datesWithHistoricalMenus.value = dates;
     } catch (err) {
-      console.error("Failed to load dates with historical menus:", err);
-      error.value = '无法加载有历史菜单的日期列表。';
+      console.error("Failed to load all dates with historical menus:", err);
+      error.value = '无法加载所有历史菜单日期列表。';
       datesWithHistoricalMenus.value = [];
     } finally {
       isLoading.value = false;
     }
   }
+
+  // NEW Action: Load menu dates for a specific month for calendar highlighting
+  async function loadMenuDatesForMonth(year, month) {
+    if (!year || !month) {
+      console.error("loadMenuDatesForMonth requires year and month.");
+      return;
+    }
+    isLoadingCalendarDates.value = true; // Use specific loader
+    error.value = null; // Clear general error, or use a specific calendar error state
+    try {
+      // Ensure month is within valid range (1-12)
+      if (month < 1 || month > 12) {
+        throw new Error("Invalid month provided.");
+      }
+      const dates = await apiService.fetchDatesWithMenusInMonth(year, month);
+      calendarMonthMenuDates.value = dates;
+      console.log(`Loaded menu dates for ${year}-${month}:`, dates);
+    } catch (err) {
+      console.error(`Failed to load menu dates for ${year}-${month}:`, err);
+      // Set specific calendar error? For now, use general error.
+      error.value = `无法加载 ${year}年${month}月 的菜单日期。`;
+      calendarMonthMenuDates.value = []; // Clear dates on error
+    } finally {
+      isLoadingCalendarDates.value = false;
+    }
+  }
+
 
   async function loadHistoricalMenuForDate(date) {
     if (!date || typeof date !== 'string') {
@@ -207,14 +262,12 @@ export const useTodayMenuStore = defineStore('todayMenu', () => {
 
   return {
     // State refs
-    todayWorkingMenuRecipes,
-    viewedHistoricalMenu,
-    viewedHistoricalDate,
-    availableHistoricalVersions,
-    selectedHistoricalVersionId,
-    datesWithHistoricalMenus,
+    // ... (existing state refs) ...
+    datesWithHistoricalMenus, // Keep if needed
+    calendarMonthMenuDates,   // NEW state
     isLoading,
     error,
+    isLoadingCalendarDates, // NEW state
 
     // Getters
     currentWorkingMenuItems,
@@ -225,9 +278,10 @@ export const useTodayMenuStore = defineStore('todayMenu', () => {
     historicalMenuVersions,
     historicalSelectedVersionId,
     historicalVersionInfo,
-    daysWithSavedMenu,
+    daysWithSavedMenu, // MODIFIED getter
     loadingStatus,
     errorMessage,
+    isLoadingCalendar, // NEW getter
 
     // Actions
     addRecipeToTodayWorkingMenu,
@@ -235,7 +289,8 @@ export const useTodayMenuStore = defineStore('todayMenu', () => {
     updateMealTypeInTodayWorkingMenu,
     clearTodayWorkingMenu,
     saveTodayWorkingMenu,
-    loadDatesWithHistoricalMenus,
+    loadDatesWithHistoricalMenus, // Keep if needed
+    loadMenuDatesForMonth,      // NEW action
     loadHistoricalMenuForDate,
     loadHistoricalMenuVersion,
   };

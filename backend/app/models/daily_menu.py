@@ -174,3 +174,37 @@ def get_dates_with_menus():
     )
     dates = cursor.fetchall()
     return [row['menu_date'] for row in dates]
+
+# New function to get dates with menus within a specific month
+def get_dates_with_menus_in_month(year, month):
+    """
+    Retrieves a distinct list of dates ('YYYY-MM-DD') within a specific year
+    and month that have saved menus.
+    """
+    db = get_db()
+    # Format month with leading zero if needed for comparison with strftime('%m')
+    month_str = f"{month:02d}"
+    year_str = str(year)
+
+    try:
+        cursor = db.execute(
+            """
+            SELECT DISTINCT menu_date
+            FROM daily_menus
+            WHERE strftime('%Y', menu_date) = ? AND strftime('%m', menu_date) = ?
+            ORDER BY menu_date ASC
+            """,
+            (year_str, month_str)
+        )
+        dates = cursor.fetchall()
+        return [row['menu_date'] for row in dates]
+    except sqlite3.Error as e:
+        # Log the error for debugging
+        current_app.logger.error(f"Database error fetching menu dates for {year}-{month}: {e}", exc_info=True)
+        # Re-raise the exception to be handled by the route
+        raise e
+    except Exception as e:
+        # Log unexpected errors
+        current_app.logger.error(f"Unexpected error fetching menu dates for {year}-{month}: {e}", exc_info=True)
+        # Re-raise the exception to be handled by the route
+        raise e

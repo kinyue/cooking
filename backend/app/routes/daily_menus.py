@@ -15,7 +15,7 @@ def validate_date(date_str):
     except ValueError:
         return False
 
-@bp.route('/', methods=['GET'])
+@bp.route('/', methods=['GET'], strict_slashes=False) # Allow access without trailing slash
 def get_daily_menu():
     """
     Get the latest menu details and all available versions for a specific date.
@@ -54,7 +54,43 @@ def get_menu_dates():
         abort(500, description="Internal server error fetching menu dates.")
 
 
-@bp.route('/', methods=['POST'])
+# New route to get dates with menus within a specific month
+@bp.route('/dates-in-month', methods=['GET'])
+def get_menu_dates_in_month():
+    """
+    Get a list of dates within a specific year and month that have saved menus.
+    Requires 'year' and 'month' query parameters (integers).
+    """
+    year_str = request.args.get('year')
+    month_str = request.args.get('month')
+
+    if not year_str or not month_str:
+        return jsonify({"message": "Missing 'year' or 'month' query parameter."}), 400
+
+    try:
+        year = int(year_str)
+        month = int(month_str)
+        # Basic validation for month range
+        if not (1 <= month <= 12):
+             raise ValueError("Month must be between 1 and 12.")
+        # Basic validation for year (optional, adjust range as needed)
+        if not (1900 <= year <= 2100):
+             raise ValueError("Year seems out of reasonable range.")
+
+    except ValueError as e:
+        return jsonify({"message": f"Invalid year or month parameter: {e}"}), 400
+
+    try:
+        # Call a new model function to get dates for the specific month
+        # We will need to implement get_dates_with_menus_in_month in the model
+        dates = db_daily_menu.get_dates_with_menus_in_month(year, month)
+        return jsonify({"dates": dates})
+    except Exception as e:
+        current_app.logger.error(f"Error fetching menu dates for {year}-{month}: {e}", exc_info=True)
+        abort(500, description=f"Internal server error fetching menu dates for {year}-{month}.")
+
+
+@bp.route('/', methods=['POST'], strict_slashes=False) # Allow access without trailing slash
 def save_daily_menu():
     """
     Save a new menu version for a specific date.

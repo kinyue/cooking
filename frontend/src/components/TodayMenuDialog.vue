@@ -119,15 +119,18 @@
             <v-divider></v-divider>
             <v-list class="ingredient-list">
               <!-- Ingredient list based on localCheckedState -->
-              <v-list-item v-for="(ingredient, index) in aggregatedIngredients" :key="index" density="comfortable"
-                class="ingredient-item" rounded="0">
+              <v-list-item v-for="(ingredient) in aggregatedIngredients" :key="ingredient.name" density="comfortable"
+                class="ingredient-item" rounded="0"> <!-- Use ingredient.name as key for stability -->
                 <template v-slot:prepend>
-                  <!-- TODO: Re-evaluate ingredient checkbox logic -->
-                  <v-checkbox-btn :model-value="ingredient.checked"
-                    @update:modelValue="() => console.warn('Ingredient toggle TBD')"
-                    color="success" density="comfortable"></v-checkbox-btn>
+                  <!-- Bind checkbox to localIngredientCheckedState using ingredient name -->
+                  <v-checkbox-btn
+                    :model-value="localIngredientCheckedState[ingredient.name]"
+                    @update:modelValue="newValue => localIngredientCheckedState[ingredient.name] = newValue"
+                    color="success"
+                    density="comfortable"
+                  ></v-checkbox-btn>
                 </template>
-                <v-list-item-title>
+                <v-list-item-title :class="{ 'text-decoration-line-through text-grey': !localIngredientCheckedState[ingredient.name] }"> <!-- Add strikethrough if unchecked -->
                   {{ ingredient.name }}
                   <span class="text-grey ml-2">x{{ ingredient.count }}</span>
                 </v-list-item-title>
@@ -338,9 +341,10 @@ const isLoading = computed(() => todayMenuStore.loadingStatus); // Keep loading 
 // const currentSelectedVersionId = computed(() => todayMenuStore.selectedVersionId);
 
 // --- Local state for UI interaction (e.g., checkboxes) ---
-const localCheckedState = ref({}); // { recipeId: boolean }
+const localCheckedState = ref({}); // { recipeId: boolean } for recipes
+const localIngredientCheckedState = ref({}); // { ingredientName: boolean } for aggregated ingredients
 
-// Watch the working menu items to reset local checked state
+// Watch the working menu items to reset local recipe checked state
 watch(menuItems, (newItems) => {
   // Initialize local checked state based on the items in the working menu
   // Preserve existing checked state if item already exists, otherwise default to false
@@ -353,6 +357,7 @@ watch(menuItems, (newItems) => {
 
 
 // --- Computed properties based on local state (for UI controls) ---
+
 const allRecipesChecked = computed(() => {
   const ids = menuItems.value.map(item => item.recipe_id);
   return ids.length > 0 && ids.every(id => localCheckedState.value[id]);
@@ -373,17 +378,40 @@ const aggregatedIngredients = computed(() => {
        console.warn(`Recipe '${recipeName}' has missing or invalid ingredients data.`);
     }
   });
-  // Assume aggregated ingredients are 'checked' for shopping list UI part
+  // Only return the list of names and counts. The checked state is managed separately.
   return Array.from(ingredientCountMap.entries()).map(([name, count]) => ({
     name: name,
-    count: count,
-    checked: true // Default for shopping list display
+    count: count
   }));
 });
 
-// TODO: Re-evaluate ingredient checking logic if needed for shopping list interaction.
+// Watch the result of aggregatedIngredients to update the local checked state for ingredients
+watch(aggregatedIngredients, (newIngredientsList) => {
+    const newState = { ...localIngredientCheckedState.value }; // Start with existing state
+    const currentIngredientNames = new Set(newIngredientsList.map(ing => ing.name));
+
+    // Remove ingredients from local state that are no longer in the aggregated list
+    Object.keys(newState).forEach(name => {
+        if (!currentIngredientNames.has(name)) {
+            delete newState[name];
+        }
+    });
+
+    // Add new ingredients to local state, defaulting to checked (true)
+    newIngredientsList.forEach(ing => {
+        if (!(ing.name in newState)) {
+            newState[ing.name] = true; // Default new ingredients to checked
+        }
+    });
+    localIngredientCheckedState.value = newState;
+}, { deep: true }); // No immediate needed, let computed run first
+
+
+// Computed property to check if all *currently displayed* aggregated ingredients are checked locally
 const allIngredientsChecked = computed(() => {
-    return aggregatedIngredients.value.length > 0; // Simplified: true if any ingredients listed
+  const currentIngredientNames = aggregatedIngredients.value.map(ing => ing.name);
+  // Check if there are ingredients and if every one of them is marked as true in the local state
+  return currentIngredientNames.length > 0 && currentIngredientNames.every(name => localIngredientCheckedState.value[name]);
 });
 
 // Check if any recipe is locally checked (for enabling 'Remove Checked' button)
@@ -444,9 +472,14 @@ const clearChecked = () => {
     showSnackbar('已移除选中的菜谱（未保存）', 'info');
 };
 
-// TODO: Adapt ingredient toggling if needed
-// const handleIngredientToggle = (ingredientName, currentStatus) => { ... };
-// const toggleAllIngredients = () => { ... };
+// Method to toggle the checked state of all currently displayed aggregated ingredients
+const toggleAllIngredients = () => {
+  const newState = !allIngredientsChecked.value; // Determine the target state (true if not all checked, false if all checked)
+  // Iterate through the *currently displayed* ingredients and update their state in localIngredientCheckedState
+  aggregatedIngredients.value.forEach(ingredient => {
+    localIngredientCheckedState.value[ingredient.name] = newState;
+  });
+};
 
 // Remove Version Selection Logic
 // function handleVersionChange(newVersionId) { ... }

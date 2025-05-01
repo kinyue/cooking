@@ -186,6 +186,23 @@ const fetchMenuById = async (menuId) => {
 
 // --- End Daily Menu API Calls ---
 
+/**
+ * Fetches a list of dates within a specific year and month that have saved menus.
+ * @param {number} year - The year.
+ * @param {number} month - The month (1-12).
+ * @returns {Promise<string[]>} - Promise resolving to an array of date strings ['YYYY-MM-DD', ...]
+ */
+const fetchDatesWithMenusInMonth = async (year, month) => {
+  try {
+    const response = await api.get('/daily-menus/dates-in-month', { params: { year, month } });
+    return response.data.dates; // Assuming backend returns { "dates": [...] }
+  } catch (error) {
+    console.error(`API Error fetching menu dates for ${year}-${month}:`, error);
+    // Re-throw the error so the calling action in the store can handle it
+    throw error;
+  }
+};
+
 
 export {
   getRecipes,
@@ -200,6 +217,7 @@ export {
   fetchDatesWithMenus,
   saveDailyMenu,
   fetchMenuById,
+  fetchDatesWithMenusInMonth, // Add the new function
 };
 
 export default {
@@ -215,4 +233,5 @@ export default {
   fetchDatesWithMenus,
   saveDailyMenu,
   fetchMenuById,
+  fetchDatesWithMenusInMonth, // Add the new function
 };

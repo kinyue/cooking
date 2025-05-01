@@ -31,11 +31,11 @@
     </v-btn>
     <v-btn icon @click="showMenuDialog = true" class="header-button d-none d-sm-flex">
       <v-badge
-        :content="todayMenu.currentWorkingMenuCount" 
+        :content="todayMenu.currentWorkingMenuCount"
         :model-value="todayMenu.currentWorkingMenuCount > 0"
         color="error"
         floating
-        overlap 
+        overlap
       >
         <v-icon>mdi-silverware-fork-knife</v-icon>
       </v-badge>
@@ -45,74 +45,36 @@
       <v-icon>mdi-calendar-month-outline</v-icon>
     </v-btn>
 
-    <!-- Buttons for smaller screens - Remove mx-1 for tighter spacing -->
-    <!-- Filter button for smaller screens -->
+    <!-- Buttons for smaller screens -->
     <v-btn icon @click="showFilterDrawer = true" class="d-sm-none">
       <v-icon>mdi-filter-variant</v-icon>
     </v-btn>
     <v-btn icon @click="isRandomRecipeDialogOpen = true" class="d-sm-none">
       <v-icon>mdi-dice-5-outline</v-icon>
     </v-btn>
-    <!-- Add Recipe Button for smaller screens -->
     <v-btn icon @click="showAddDialog = true" class="d-sm-none">
       <v-icon>mdi-hamburger-plus</v-icon>
     </v-btn>
     <v-btn icon @click="showMenuDialog = true" class="d-sm-none">
       <v-badge
-        :content="todayMenu.currentWorkingMenuCount" 
+        :content="todayMenu.currentWorkingMenuCount"
         :model-value="todayMenu.currentWorkingMenuCount > 0"
         color="error"
         floating
-        overlap 
+        overlap
       >
         <v-icon>mdi-silverware-fork-knife</v-icon>
       </v-badge>
     </v-btn>
-    <!-- Calendar Button for smaller screens -->
     <v-btn icon @click="openCalendar" class="d-sm-none">
       <v-icon>mdi-calendar-month-outline</v-icon>
     </v-btn>
 
-    <!-- <v-menu offset-y>
-      <template v-slot:activator="{ props }">
-        <v-btn text v-bind="props" class="user-menu-button ml-2 mr-2">
-          <v-avatar color="primary" size="32" class="mr-2">
-            <span class="white--text text-caption">用户</span>
-          </v-avatar>
-          <span class="d-none d-md-inline">用户名</span> 
-          <v-icon right class="d-none d-md-inline ml-1">mdi-chevron-down</v-icon>
-        </v-btn>
-      </template>
-      <v-list density="compact" nav>
-        <v-list-item link @click="() => {}">
-          <template v-slot:prepend>
-            <v-icon>mdi-account-circle-outline</v-icon>
-          </template>
-          <v-list-item-title>个人中心</v-list-item-title>
-        </v-list-item>
-        <v-list-item link @click="() => {}">
-          <template v-slot:prepend>
-            <v-icon>mdi-cog-outline</v-icon>
-          </template>
-          <v-list-item-title>设置</v-list-item-title>
-        </v-list-item>
-        <v-divider class="my-1"></v-divider>
-        <v-list-item link @click="() => {}">
-          <template v-slot:prepend>
-            <v-icon color="error">mdi-logout</v-icon>
-          </template>
-          <v-list-item-title class="text-error">退出登录</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-menu> -->
-
-    <!-- Today's Menu Dialog - No longer needs items prop or old event listeners -->
+    <!-- Today's Menu Dialog -->
     <TodayMenuDialog
       v-model="showMenuDialog"
-      @update:snackbar="snackbar = $event" 
+      @update:snackbar="snackbar = $event"
     />
-    <!-- Note: Pass snackbar updates if TodayMenuDialog emits them -->
-    <!-- If TodayMenuDialog handles its own snackbar, remove @update:snackbar -->
 
     <!-- Random Recipe Dialog -->
     <RandomRecipeDialog v-model="isRandomRecipeDialogOpen" />
@@ -130,7 +92,7 @@
     </v-dialog>
 
     <!-- Filter Drawer -->
-    <FilterDrawer 
+    <FilterDrawer
       v-model="showFilterDrawer"
       @apply="handleFilterApply"
     />
@@ -166,16 +128,17 @@
     <v-dialog v-model="showCalendarDialog" width="auto">
       <v-card>
         <v-card-title>选择日期查看菜单</v-card-title>
+        <v-progress-linear indeterminate color="primary" v-if="isLoadingCalendar"></v-progress-linear>
         <v-date-picker
           v-model="selectedDate"
           @update:modelValue="handleDateSelect"
-          :events="datesWithMenus"
-          event-color="primary"
+          @update:month="handleMonthChange"
           color="primary"
           show-adjacent-months
           hide-header
-          class="ma-2"
-        ></v-date-picker>
+          class="ma-2 custom-calendar-highlight"
+          ref="datePickerRef" 
+        ></v-date-picker> <!-- Removed :events and event-color -->
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn text @click="showCalendarDialog = false">关闭</v-btn>
@@ -187,16 +150,15 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'; // Import computed
+// Import necessary hooks including watch, nextTick
+import { ref, computed, watch, nextTick } from 'vue';
 import { useTodayMenuStore } from '@/stores/todayMenu';
 import TodayMenuDialog from '@/components/TodayMenuDialog.vue';
 import RandomRecipeDialog from '@/components/RandomRecipeDialog.vue';
 import RecipeForm from '@/components/RecipeForm.vue';
 import FilterDrawer from '@/components/FilterDrawer.vue';
-// Remove direct api import for create/upload, use composable instead
-// import api from '@/services/api';
 import { useRouter } from 'vue-router';
-import { useRecipeSubmit } from '@/composables/useRecipeSubmit'; // Import the composable
+import { useRecipeSubmit } from '@/composables/useRecipeSubmit';
 
 const todayMenu = useTodayMenuStore();
 const showMenuDialog = ref(false);
@@ -204,13 +166,14 @@ const showAddDialog = ref(false);
 const isRandomRecipeDialogOpen = ref(false);
 const showFilterDrawer = ref(false);
 const router = useRouter();
+const datePickerRef = ref(null); // Ref for the date picker
 
 // --- Calendar Dialog State & Logic ---
 const showCalendarDialog = ref(false);
-const selectedDate = ref(new Date()); // Initialize with today or null
-const datesWithMenus = computed(() => todayMenu.daysWithSavedMenu); // Get dates from store
+const selectedDate = ref(new Date());
+const isLoadingCalendar = computed(() => todayMenu.isLoadingCalendar);
 
-// Snackbar state
+// --- Snackbar state ---
 const snackbar = ref({
   show: false,
   text: '',
@@ -218,70 +181,151 @@ const snackbar = ref({
   timeout: 3000
 });
 
-// Remove unused methods related to old TodayMenuDialog events
-// const handleRemoveRecipe = (recipeId) => { ... };
-// const handleClearAll = () => { ... };
-// const handleClearChecked = () => { ... };
+// --- Custom Calendar Highlight Logic ---
+
+// Function to add highlight class to calendar days
+const updateCalendarHighlights = async () => {
+
+  console.log('Updating calendar highlights...');
+
+  await nextTick(); // Wait for DOM updates
+
+  // Use the ref to get the date picker element, or fallback to querySelector
+  const calendarElement = datePickerRef.value?.$el ?? document.querySelector('.custom-calendar-highlight');
+  if (!calendarElement) {
+    console.warn('Calendar element not found for highlighting.');
+    return;
+  }
+  // More specific selector for the content area containing the day buttons
+  const calendarContentElement = calendarElement.querySelector('.v-picker-outer__content') ?? calendarElement;
+
+
+  // Get the dates with menus for the current view
+  const datesWithMenus = todayMenu.calendarMonthMenuDates; // Use the raw 'YYYY-MM-DD' strings
+
+  console.log('Dates with menus:', datesWithMenus);
+
+  if (!Array.isArray(datesWithMenus)) {
+      console.warn('datesWithMenus is not an array:', datesWithMenus);
+      return;
+  }
+
+  // Remove existing highlights first
+  calendarContentElement.querySelectorAll('.v-btn.has-menu-highlight').forEach(btn => {
+    btn.classList.remove('has-menu-highlight');
+  });
+
+  // Find corresponding buttons and add the class
+  datesWithMenus.forEach(dateString => {
+    console.log('Processing date string for highlight:', dateString);
+    try {
+        const [year, month, day] = dateString.split('-').map(Number);
+        // Find buttons within the calendar content area
+        // Selector needs verification for Vuetify 3. Common patterns:
+        // '.v-date-picker-month .v-btn'
+        // '.v-date-picker-month__day > .v-btn'
+        // '.v-date-picker-month__day > button' (if it's a native button)
+        const dayButtons = calendarContentElement.querySelectorAll('.v-date-picker-month .v-btn'); // Adjust selector if needed
+
+        console.log(`Found ${year}-${month}-${day} date in the calendar.`);
+
+        dayButtons.forEach(button => {
+            // Check button text content (fragile)
+            if (button.textContent?.trim() === String(day)) {
+                 // Add a check: Ensure the button is not for an adjacent month
+                 // Vuetify might add classes like 'v-date-picker-day--adjacent' or similar
+                 // Inspect the DOM to confirm the class name for adjacent days
+                 const parentDayElement = button.closest('.v-date-picker-month__day'); // Find parent day container
+                 if (parentDayElement && !parentDayElement.classList.contains('v-date-picker-month__day--adjacent') && !parentDayElement.classList.contains('v-date-picker-month__day--hide-adjacent')) { // Check multiple possible classes
+                    button.classList.add('has-menu-highlight');
+                    // console.log(`Added highlight class to button for ${dateString}`, button);
+                 }
+            }
+        });
+    } catch (e) {
+        console.error(`Error processing date string ${dateString} for highlight:`, e);
+    }
+  });
+   console.log('Finished updating calendar highlights for dates:', datesWithMenus);
+};
+
 
 // --- Calendar Dialog Methods ---
 const openCalendar = async () => {
-  // Load dates with menus when opening the calendar
-  await todayMenu.loadDatesWithHistoricalMenus();
-  // Ensure selectedDate is initialized (e.g., to today or store's current date)
-  selectedDate.value = new Date(todayMenu.currentDate); // Sync with store's current date
-  showCalendarDialog.value = true;
+  try {
+    showCalendarDialog.value = true;
+    const initialDate = new Date();
+    selectedDate.value = initialDate;
+    const initialYear = initialDate.getFullYear();
+    const initialMonth = initialDate.getMonth() + 1;
+    await todayMenu.loadMenuDatesForMonth(initialYear, initialMonth);
+    // Highlights will be updated by the watcher
+  } catch (error) {
+    console.error('Failed to load calendar data:', error);
+    snackbar.value = { show: true, text: '加载日历数据失败', color: 'error', timeout: 3000 };
+  }
 };
 
+const handleMonthChange = async (monthIndex) => { // Renamed parameter for clarity
+  // The event emits the 0-based month index (e.g., 0 for January, 4 for May)
+  if (typeof monthIndex !== 'number' || monthIndex < 0 || monthIndex > 11) {
+      console.error("Invalid month index received from @update:month:", monthIndex);
+      snackbar.value = { show: true, text: '处理月份切换失败', color: 'error', timeout: 3000 };
+      return;
+  }
+
+  // Get the year from the currently selected date.
+  // Note: This might be inaccurate if the user clicks a date in an adjacent month shown,
+  // but it's the most straightforward way when only the month index is provided.
+  const currentYear = selectedDate.value.getFullYear();
+  const newMonth = monthIndex + 1; // Convert 0-based index to 1-based month
+
+  // Update selectedDate's month for context, keeping the day and year
+  // This helps keep the calendar view centered around the new month
+  selectedDate.value = new Date(currentYear, monthIndex, selectedDate.value.getDate());
+
+  console.log(`Handling month change. Year: ${currentYear}, New Month (1-based): ${newMonth}`);
+
+  try {
+    await todayMenu.loadMenuDatesForMonth(currentYear, newMonth);
+    // Highlights will be updated by the watcher triggered by store change
+  } catch (error) {
+    console.error('Failed to load calendar data for new month:', error);
+    snackbar.value = { show: true, text: '加载新月份数据失败', color: 'error', timeout: 3000 };
+  }
+};
+
+
 const handleDateSelect = async (date) => {
-  if (!date) return;
-  // Format the selected date (assuming 'date' is a Date object from v-date-picker)
+  if (!(date instanceof Date)) {
+      try {
+          date = new Date(date);
+          if (isNaN(date.getTime())) throw new Error("Invalid Date");
+      } catch (e) {
+          console.error("Could not convert selected value to Date:", date);
+          return;
+      }
+  }
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   const dateString = `${year}-${month}-${day}`;
-
-  // Update store's state for the viewed historical date
-  // NOTE: We are NOT loading the data here, the target view/dialog will do that.
-  // We just set the date context in the store if needed, or pass it via route param.
-  // Let's assume the target view will use the route param.
-
-  // Close calendar and navigate to the historical menu view
   showCalendarDialog.value = false;
   router.push({ name: 'historical-menu', params: { date: dateString } });
 };
 
 // --- Use the composable for submission logic ---
-// Only destructure what's needed: submitError and submitRecipe
 const { error: submitError, submitRecipe } = useRecipeSubmit();
 
 // --- Methods for Add Recipe Dialog ---
 const handleAddRecipeSubmit = async (payload) => {
-  // Call the composable's submit function
   const newRecipeId = await submitRecipe(payload);
-
   if (newRecipeId) {
-    // Success
     showAddDialog.value = false;
-    snackbar.value = {
-      show: true,
-      // We don't have the recipe name directly here anymore, use generic message
-      text: `新菜谱添加成功！ (ID: ${newRecipeId})`,
-      color: 'success',
-      timeout: 3000,
-    };
-    // Navigate to home page to trigger refresh
+    snackbar.value = { show: true, text: `新菜谱添加成功！ (ID: ${newRecipeId})`, color: 'success', timeout: 3000 };
     router.push({ path: '/', query: { added: Date.now() } });
-    // Or navigate to detail page:
-    // router.push({ name: 'recipe-detail', params: { id: newRecipeId } });
   } else {
-    // Failure - error message is in submitError.value from the composable
-    snackbar.value = {
-      show: true,
-      text: `添加菜谱失败: ${submitError.value || '请稍后再试'}`,
-      color: 'error',
-      timeout: 5000,
-    };
-    // Keep the dialog open on error
+    snackbar.value = { show: true, text: `添加菜谱失败: ${submitError.value || '请稍后再试'}`, color: 'error', timeout: 5000 };
   }
 };
 
@@ -291,46 +335,56 @@ const handleCancelAdd = () => {
 
 // --- Methods for Filter Drawer ---
 const handleFilterApply = (filters) => {
-  // 将筛选条件转换为URL查询参数
   const query = {
     ...(filters.search && { search: filters.search }),
-    ...(filters.ingredientSearch && { ingredients: filters.ingredientSearch }), // Add ingredient search query param
-    ...(filters.tags?.length > 0 && { tags: filters.tags }), // Pass the array directly
+    ...(filters.ingredientSearch && { ingredients: filters.ingredientSearch }),
+    ...(filters.tags?.length > 0 && { tags: filters.tags.join(',') }),
     ...(filters.difficulty && { difficulty: filters.difficulty }),
     ...(filters.cuisine && { cuisine: filters.cuisine }),
-    ...(filters.prepTimeRange && { 
-      prepTimeMin: filters.prepTimeRange[0],
-      prepTimeMax: filters.prepTimeRange[1]
-    }),
-    ...(filters.cookTimeRange && {
-      cookTimeMin: filters.cookTimeRange[0],
-      cookTimeMax: filters.cookTimeRange[1]
-    }),
-    ...(filters.servings && {
-      servingsMin: filters.servings[0],
-      servingsMax: filters.servings[1]
-    }),
-    // 添加时间戳以确保路由更新
+    ...(filters.prepTimeRange && { prepTimeMin: filters.prepTimeRange[0], prepTimeMax: filters.prepTimeRange[1] }),
+    ...(filters.cookTimeRange && { cookTimeMin: filters.cookTimeRange[0], cookTimeMax: filters.cookTimeRange[1] }),
+    ...(filters.servings && { servingsMin: filters.servings[0], servingsMax: filters.servings[1] }),
     _t: Date.now()
   };
-
-  // 更新路由以触发HomeView组件的数据刷新
-  router.push({ 
-    path: '/',
-    query
+  Object.keys(query).forEach(key => {
+    if (query[key] === undefined || query[key] === null || query[key] === '') delete query[key];
   });
-
-  // 显示成功提示
-  snackbar.value = {
-    show: true,
-    text: '筛选条件已应用',
-    color: 'success',
-    timeout: 2000
-  };
+  router.push({ path: '/', query });
+  snackbar.value = { show: true, text: '筛选条件已应用', color: 'success', timeout: 2000 };
 };
+
+
+// --- Lifecycle Hooks and Watchers for Calendar Highlights ---
+
+// Watch for changes in the dates loaded by the store
+watch(() => todayMenu.calendarMonthMenuDates, (newDates, oldDates) => {
+  if (JSON.stringify(newDates) !== JSON.stringify(oldDates)) {
+      console.log('Detected change in calendarMonthMenuDates, updating highlights:', newDates);
+      updateCalendarHighlights();
+  }
+}, { deep: true });
+
+// Watch for the calendar dialog becoming visible
+watch(showCalendarDialog, (isVisible) => {
+  if (isVisible) {
+    // Update highlights when dialog opens (data should be loaded or loading)
+    updateCalendarHighlights();
+  }
+});
+
+// Optional: Watch for isLoadingCalendar to ensure highlights are applied after loading finishes
+watch(isLoadingCalendar, (loading) => {
+    if (!loading && showCalendarDialog.value) {
+        // If loading finished and dialog is open, ensure highlights are up-to-date
+        updateCalendarHighlights();
+    }
+});
 
 </script>
 
 <style scoped>
 @import '@/assets/components/app-header.css';
+
+
+
 </style>
