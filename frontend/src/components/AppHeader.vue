@@ -274,24 +274,63 @@ const handleMonthChange = async (monthIndex) => { // Renamed parameter for clari
       return;
   }
 
-  // Get the year from the currently selected date.
-  // Note: This might be inaccurate if the user clicks a date in an adjacent month shown,
-  // but it's the most straightforward way when only the month index is provided.
-  const currentYear = selectedDate.value.getFullYear();
-  const newMonth = monthIndex + 1; // Convert 0-based index to 1-based month
+  // Determine the displayed year and month (1-based)
+  const displayedYear = selectedDate.value.getFullYear();
+  const displayedMonthOneBased = monthIndex + 1; // Convert 0-based index to 1-based month
 
   // Update selectedDate's month for context, keeping the day and year
-  // This helps keep the calendar view centered around the new month
-  selectedDate.value = new Date(currentYear, monthIndex, selectedDate.value.getDate());
+  selectedDate.value = new Date(displayedYear, monthIndex, selectedDate.value.getDate());
 
-  console.log(`Handling month change. Year: ${currentYear}, New Month (1-based): ${newMonth}`);
+  console.log(`Handling month change. Displayed Year: ${displayedYear}, Displayed Month (1-based): ${displayedMonthOneBased}`);
 
   try {
-    await todayMenu.loadMenuDatesForMonth(currentYear, newMonth);
-    // Highlights will be updated by the watcher triggered by store change
+    // Load data for the new month first
+    await todayMenu.loadMenuDatesForMonth(displayedYear, displayedMonthOneBased);
+    // Highlights for saved menus will be updated by the watcher
+
+    // Now, handle the '--current' class removal logic after DOM updates
+    await nextTick(); // Wait for potential DOM updates after month change
+
+    const today = new Date();
+    const realCurrentMonthZeroBased = today.getMonth(); // 0-based
+    const realCurrentYear = today.getFullYear();
+
+    const pickerElement = datePickerRef.value?.$el ?? document.querySelector('.custom-calendar-highlight');
+    if (!pickerElement) {
+        console.warn("Date picker element not found for '--current' class manipulation.");
+        return;
+    }
+
+    // Check if the displayed month/year is the actual current month/year
+    if (displayedYear !== realCurrentYear || monthIndex !== realCurrentMonthZeroBased) {
+      // If NOT the current month/year, remove the '--current' class from all day cells
+    
+      const currentDayCells = pickerElement.querySelectorAll('.v-date-picker-month__day--selected');
+      currentDayCells.forEach(cell => {
+        console.log("currentDayCells.classList: " + cell.classList)
+
+        cell.classList.remove('v-date-picker-month__day--selected');
+        // Note: We rely on the CSS rule with !important to handle the visual style change
+        // instead of directly manipulating button styles here.
+      });
+      const currentDayBtn = pickerElement.querySelectorAll('.v-date-picker-month__day-btn');
+      currentDayBtn.forEach(cell => {
+        console.log("currentDayCells.classList: " + cell.classList)
+
+        cell.classList.remove('bg-primary');
+        // Note: We rely on the CSS rule with !important to handle the visual style change
+        // instead of directly manipulating button styles here.
+      });
+    } else {
+        // If it IS the current month, Vuetify should handle adding the class back.
+        console.log(`Displayed month (${displayedMonthOneBased}/${displayedYear}) IS the current month. Vuetify should handle '--current' class.`);
+        // If Vuetify fails to re-add the class, manual addition might be needed here,
+        // but it's usually handled automatically by the component.
+    }
+
   } catch (error) {
-    console.error('Failed to load calendar data for new month:', error);
-    snackbar.value = { show: true, text: '加载新月份数据失败', color: 'error', timeout: 3000 };
+    console.error('Failed during month change handling:', error);
+    snackbar.value = { show: true, text: '处理月份切换失败', color: 'error', timeout: 3000 };
   }
 };
 
