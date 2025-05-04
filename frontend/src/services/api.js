@@ -2,7 +2,7 @@ import axios from 'axios';
 import qs from 'qs'; // Import qs library
 
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:5000/api', // Assuming your backend is served on the same domain
+  baseURL: 'http://0.0.0.0:10000/api', // Assuming your backend is served on the same domain
   // Configure paramsSerializer to use qs with arrayFormat: 'repeat'
   paramsSerializer: params => {
     return qs.stringify(params, { arrayFormat: 'repeat' })
