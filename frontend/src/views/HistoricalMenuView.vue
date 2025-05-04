@@ -1,7 +1,7 @@
 <template>
   <v-container class="py-2">
     <v-row justify="center">
-      <v-col cols="14" md="7" lg="5">
+      <v-col cols="12" md="6" lg="4">
         <v-card class="historical-menu-card" elevation="1">
           <v-toolbar color="primary" dark elevation="0">
             <v-btn icon @click="goBack" class="mr-2">
@@ -149,21 +149,31 @@
                       </div>
 
                       <div class="recipe-ingredients">
-                        <v-chip
-                          v-if="getMainIngredients(recipe)"
-                          size="small"
-                          color="primary"
-                          variant="outlined"
-                          density="comfortable"
-                          class="ingredients-chip"
-                        >
-                          <template v-slot:prepend>
-                            <v-icon size="16">mdi-food-variant</v-icon>
-                          </template>
-                          <div class="ingredients-text">
-                            {{ getMainIngredients(recipe) }}
+                        <div v-if="recipe.ingredients" class="ingredients-flow">
+                          <div 
+                            v-for="(ingredient, idx) in parseIngredients(recipe.ingredients)" 
+                            :key="idx"
+                            class="ingredient-item"
+                          >
+                            <v-btn
+                              size="x-small"
+                              variant="text"
+                              :ripple="false"
+                              class="pa-1"
+                              :class="{'first-ingredient': idx === 0}"
+                            >
+                              <v-icon
+                                v-if="idx === 0"
+                                size="14"
+                                start
+                                color="primary"
+                              >
+                                mdi-food-variant
+                              </v-icon>
+                              {{ ingredient.name }}
+                            </v-btn>
                           </div>
-                        </v-chip>
+                        </div>
                       </div>
                     </div>
                   </v-list-item>
@@ -207,16 +217,14 @@ const getImageSrc = (imageData) => {
   return defaultImage;
 };
 
-// Helper function to get and format main ingredients
-const getMainIngredients = (recipe) => {
-  if (!recipe.ingredients) return '';
+// Helper function to parse ingredients
+const parseIngredients = (ingredientsStr) => {
+  if (!ingredientsStr) return [];
   try {
-    const ingredients = JSON.parse(recipe.ingredients);
-    // 最多显示前3个食材，用逗号分隔
-    return ingredients.slice(0, 6).map(ing => ing.name).join('，');
+    return JSON.parse(ingredientsStr);
   } catch (e) {
     console.error('解析食材数据失败:', e);
-    return '';
+    return [];
   }
 };
 
