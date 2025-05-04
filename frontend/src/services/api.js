@@ -1,8 +1,11 @@
 import axios from 'axios';
 import qs from 'qs'; // Import qs library
 
+// Use environment variable for API base URL, fallback to localhost for development
+const apiBaseUrl = process.env.VUE_APP_API_BASE_URL || 'http://localhost:5000/api';
+
 const api = axios.create({
-  baseURL: 'http://0.0.0.0:5000/api', // Assuming your backend is served on the same domain
+  baseURL: apiBaseUrl,
   // Configure paramsSerializer to use qs with arrayFormat: 'repeat'
   paramsSerializer: params => {
     return qs.stringify(params, { arrayFormat: 'repeat' })
