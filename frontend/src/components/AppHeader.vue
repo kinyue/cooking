@@ -16,16 +16,15 @@
 
     <v-spacer></v-spacer>
 
-    <!-- Filter button for larger screens -->
-    <v-btn icon @click="showFilterDrawer = true" class="header-button d-none d-sm-flex">
+    <!-- Filter button -->
+    <v-btn icon @click="showFilterDrawer = true" class="header-button">
       <v-icon>mdi-filter-variant</v-icon>
     </v-btn>
 
-    <!-- Use icon buttons directly on larger screens now -->
+    <!-- Buttons for larger screens -->
     <v-btn icon @click="isRandomRecipeDialogOpen = true" class="header-button d-none d-sm-flex">
       <v-icon>mdi-dice-5-outline</v-icon>
     </v-btn>
-    <!-- Bind click event to open the add dialog -->
     <v-btn icon @click="showAddDialog = true" class="header-button d-none d-sm-flex">
       <v-icon>mdi-hamburger-plus</v-icon>
     </v-btn>
@@ -40,35 +39,52 @@
         <v-icon>mdi-silverware-fork-knife</v-icon>
       </v-badge>
     </v-btn>
-    <!-- Calendar Button for larger screens -->
     <v-btn icon @click="openCalendar" class="header-button d-none d-sm-flex">
       <v-icon>mdi-calendar-month-outline</v-icon>
     </v-btn>
 
-    <!-- Buttons for smaller screens -->
-    <v-btn icon @click="showFilterDrawer = true" class="d-sm-none">
-      <v-icon>mdi-filter-variant</v-icon>
-    </v-btn>
-    <v-btn icon @click="isRandomRecipeDialogOpen = true" class="d-sm-none">
-      <v-icon>mdi-dice-5-outline</v-icon>
-    </v-btn>
-    <v-btn icon @click="showAddDialog = true" class="d-sm-none">
-      <v-icon>mdi-hamburger-plus</v-icon>
-    </v-btn>
-    <v-btn icon @click="showMenuDialog = true" class="d-sm-none">
-      <v-badge
-        :content="todayMenu.currentWorkingMenuCount"
-        :model-value="todayMenu.currentWorkingMenuCount > 0"
-        color="error"
-        floating
-        overlap
-      >
-        <v-icon>mdi-silverware-fork-knife</v-icon>
-      </v-badge>
-    </v-btn>
-    <v-btn icon @click="openCalendar" class="d-sm-none calendar-button-sm"> 
-      <v-icon>mdi-calendar-month-outline</v-icon>
-    </v-btn>
+    <!-- Menu for smaller screens -->
+    <v-menu>
+      <template v-slot:activator="{ props }">
+        <v-btn icon v-bind="props" class="d-sm-none">
+          <v-icon>mdi-dots-vertical</v-icon>
+        </v-btn>
+      </template>
+      <v-list>
+        <v-list-item @click="isRandomRecipeDialogOpen = true">
+          <template v-slot:prepend>
+            <v-icon>mdi-dice-5-outline</v-icon>
+          </template>
+          <v-list-item-title>随机菜谱</v-list-item-title>
+        </v-list-item>
+        <v-list-item @click="showAddDialog = true">
+          <template v-slot:prepend>
+            <v-icon>mdi-hamburger-plus</v-icon>
+          </template>
+          <v-list-item-title>添加菜谱</v-list-item-title>
+        </v-list-item>
+        <v-list-item @click="showMenuDialog = true">
+          <template v-slot:prepend>
+            <v-badge
+              :content="todayMenu.currentWorkingMenuCount"
+              :model-value="todayMenu.currentWorkingMenuCount > 0"
+              color="error"
+              floating
+              overlap
+            >
+              <v-icon>mdi-silverware-fork-knife</v-icon>
+            </v-badge>
+          </template>
+          <v-list-item-title>今日菜单</v-list-item-title>
+        </v-list-item>
+        <v-list-item @click="openCalendar">
+          <template v-slot:prepend>
+            <v-icon>mdi-calendar-month-outline</v-icon>
+          </template>
+          <v-list-item-title>历史菜单</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
 
     <!-- Today's Menu Dialog -->
     <TodayMenuDialog
