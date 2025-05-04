@@ -306,7 +306,7 @@ export default {
       if (!this.recipe) return; // Guard against missing recipe data
 
       // Access store via this.todayMenu now
-      if (this.todayMenu.addRecipe(this.recipe)) { 
+      if (this.todayMenu.addRecipeToTodayWorkingMenu(this.recipe)) { 
         // If the recipe was successfully added (wasn't already in the menu)
         this.snackbar = {
           show: true,
