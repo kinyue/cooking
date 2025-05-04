@@ -7,6 +7,8 @@ import HomeView from '../views/HomeView.vue'
 import RecipeDetailView from '../views/RecipeDetailView.vue'
 import AddRecipeView from '../views/AddRecipeView.vue'
 import EditRecipeView from '../views/EditRecipeView.vue'
+// Import the new view for historical menus (lazy-loaded)
+const HistoricalMenuView = () => import('../views/HistoricalMenuView.vue');
 // import NotFoundView from '../views/NotFoundView.vue' // Keep commented for now
 
 const routes = [
@@ -33,6 +35,13 @@ const routes = [
     name: 'edit-recipe',
     component: EditRecipeView, // Use eagerly loaded EditRecipeView
     props: true
+  },
+  {
+    // Route for viewing historical menus for a specific date
+    path: '/history/:date', // Expects date in YYYY-MM-DD format
+    name: 'historical-menu',
+    component: HistoricalMenuView,
+    props: true // Pass route param 'date' as prop to the component
   },
   // Example of a catch-all route for 404 Not Found (optional)
   // {

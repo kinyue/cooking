@@ -58,12 +58,13 @@
         <v-btn icon="mdi-pencil" size="small" variant="text" color="orange-lighten-2" @click.stop="editRecipe"></v-btn>
         <v-btn icon="mdi-delete" size="small" variant="text" color="red-lighten-2" @click.stop="deleteRecipe"></v-btn>
         <v-btn 
-          icon="mdi-silverware-fork-knife" 
-          size="small" 
-          variant="text" 
-          :color="todayMenu.hasRecipe(recipe.id) ? 'grey' : 'green-lighten-2'" 
-          :disabled="todayMenu.hasRecipe(recipe.id)"
+          icon="mdi-silverware-fork-knife"
+          size="small"
+          variant="text"
+          :color="todayMenu.hasRecipeInWorkingMenu(recipe.id) ? 'grey' : 'green-lighten-2'"
+          :disabled="todayMenu.hasRecipeInWorkingMenu(recipe.id)"
           @click.stop="addToToday"
+          title="添加到今日菜单"
         ></v-btn>
       </v-card-actions>
     </div>
@@ -174,8 +175,9 @@ const handleTagClick = (tag) => {
 
 // --- Add to Today Logic ---
 const addToToday = () => {
-  if (todayMenu.addRecipe(props.recipe)) {
-    // If the recipe was successfully added (wasn't already in the menu)
+  // Use the correct action from the store
+  if (todayMenu.addRecipeToTodayWorkingMenu(props.recipe)) {
+    // If the recipe was successfully added (wasn't already in the working menu)
     emit('update:snackbar', {
       show: true,
       text: `菜谱 "${props.recipe.name}" 已添加到今日菜单`,

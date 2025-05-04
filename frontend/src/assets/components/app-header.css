@@ -58,3 +58,52 @@
 .v-list-item .v-icon {
   margin-right: 12px;
 }
+
+/* Custom Calendar Highlight Styles */
+/* Target buttons within the date picker month view that have the custom class */
+/* Using a class on the v-date-picker itself for better scoping */
+.custom-calendar-highlight .v-date-picker-month .v-btn.has-menu-highlight {
+  background-color: #E8F5E9 !important; /* Light green background */
+  color: #5e5b1b !important; /* Darker green text for contrast */
+  border: 1px solid #A5D6A7 !important; /* Add a subtle border */
+  font-weight: 500; /* Make text slightly bolder */
+}
+
+/* Optional: Adjust hover state for highlighted days */
+.custom-calendar-highlight .v-date-picker-month .v-btn.has-menu-highlight:hover {
+  background-color: #C8E6C9 !important; /* Slightly darker green on hover */
+}
+
+/* Ensure selected style overrides highlight if necessary, or blends */
+/* This ensures the primary color selection is still visible */
+.custom-calendar-highlight .v-date-picker-month .v-btn.v-btn--active.has-menu-highlight {
+   /* Keep Vuetify's primary color for text and border */
+   color: rgb(var(--v-theme-on-primary)) !important;
+   border-color: currentColor !important;
+   /* Use a blended background or keep the highlight */
+   background-color: #a5d6a7 !important; /* Slightly darker green when selected */
+   /* Or keep primary background: background-color: rgb(var(--v-theme-primary)) !important; */
+}
+
+/* Ensure today style overrides highlight if necessary, or blends */
+/* This ensures the outline for today's date is still visible */
+.custom-calendar-highlight .v-date-picker-month .v-btn.v-date-picker-day--today.has-menu-highlight {
+   /* Keep Vuetify's today border style */
+   border-color: rgba(var(--v-theme-on-surface), 0.6) !important; /* Adjust color/opacity as needed */
+   /* Use the highlight background */
+   background-color: #E8F5E9 !important;
+   color: #1B5E20 !important; /* Ensure text color matches highlight */
+}
+
+/* If Vuetify uses a different class for today's border, adjust selector above */
+/* e.g., .v-date-picker-day--current */
+.custom-calendar-highlight .v-date-picker-month .v-btn.v-date-picker-day--current.has-menu-highlight {
+   border-color: rgba(var(--v-theme-on-surface), 0.6) !important;
+   background-color: #E8F5E9 !important;
+   color: #1B5E20 !important;
+}
+
+/* Add right margin to the calendar button specifically on small screens */
+.calendar-button-sm {
+  margin-right: 8px !important; /* Adjust value as needed, use !important if necessary to override Vuetify defaults */
+}

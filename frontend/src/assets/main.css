@@ -1,8 +1,8 @@
 a {
-    color: #1976D2; 
+    color: #1976D2;
     text-decoration: none;
   }
-  
+
   a:hover {
     text-decoration: underline;
   }
@@ -32,4 +32,32 @@ a {
 /* Optional: Style scrollbar corner if both vertical and horizontal scrollbars appear */
 ::-webkit-scrollbar-corner {
   background: transparent;
+}
+
+/* --- v-date-picker Customizations --- */
+
+/* Force highlight the current day in the current month with deep green */
+/* Target the button within the current day cell that is NOT in an adjacent month */
+.v-date-picker-month__day--current:not(.v-date-picker-month__day--adjacent) .v-btn {
+  background-color: #1B5E20 !important; /* Deep green background, !important to override bg-primary */
+  color: white !important; /* White text for contrast */
+  border: none !important; /* Ensure no conflicting border */
+}
+
+/* Force remove background highlight from the current day number shown in adjacent months */
+/* Target the button within the current day cell that IS in an adjacent month */
+.v-date-picker-month__day--current.v-date-picker-month__day--adjacent .v-btn {
+  background-color: transparent !important; /* Force transparent background */
+  /* Force text color to match other adjacent days (often slightly dimmed) */
+  /* Using Vuetify's disabled opacity variable for consistency */
+  color: rgba(var(--v-theme-on-surface), var(--v-disabled-opacity)) !important;
+  border: none !important; /* Remove any potential borders */
+  box-shadow: none !important; /* Remove any potential shadows */
+}
+
+/* Ensure hover/focus styles on adjacent current days don't imply selection or use primary color */
+.v-date-picker-month__day--current.v-date-picker-month__day--adjacent .v-btn:hover,
+.v-date-picker-month__day--current.v-date-picker-month__day--adjacent .v-btn:focus {
+    background-color: rgba(var(--v-theme-on-surface), 0.04) !important; /* Subtle hover like other adjacent days */
+    color: rgba(var(--v-theme-on-surface), var(--v-disabled-opacity)) !important; /* Keep text color dimmed */
 }
