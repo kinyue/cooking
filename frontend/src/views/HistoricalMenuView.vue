@@ -1,8 +1,8 @@
 <template>
-  <v-container class="py-4">
+  <v-container class="py-2">
     <v-row justify="center">
-      <v-col cols="12" md="10" lg="8">
-        <v-card class="historical-menu-card" elevation="2">
+      <v-col cols="14" md="7" lg="5">
+        <v-card class="historical-menu-card" elevation="1">
           <v-toolbar color="primary" dark elevation="0">
             <v-btn icon @click="goBack" class="mr-2">
               <v-icon>mdi-arrow-left</v-icon>
@@ -74,12 +74,12 @@
                     class="meal-type-header mr-3"
                     size="large"
                   >
-                    {{ mealType || '未分类' }}
+                    {{ mealType || '其它' }}
                   </v-chip>
                   <div class="text-caption text-medium-emphasis">{{ recipes.length }}道菜品</div>
                 </div>
 
-                <v-list lines="three" class="recipe-list-historical">
+                <v-list lines="two" class="recipe-list-historical" density="compact">
                   <v-list-item
                     v-for="recipe in recipes"
                     :key="recipe.recipe_id"
@@ -89,53 +89,81 @@
                   >
                     <template v-slot:prepend>
                       <v-avatar
-                        size="100"
+                        size="90"
                         rounded="lg"
-                        class="mr-4"
+                        class="mr-3"
                       >
                         <v-img
-                          :src="recipe.recipe_image_url || defaultImage"
+                          :src="getImageSrc(recipe.recipe_image_data)"
                           :alt="recipe.recipe_name"
                           cover
                         ></v-img>
                       </v-avatar>
                     </template>
 
-                    <div class="recipe-content">
-                      <v-list-item-title class="text-h6 mb-2">
-                        {{ recipe.recipe_name }}
-                      </v-list-item-title>
+                    <div class="recipe-content-wrapper d-flex align-center w-100">
+                      <div class="recipe-content flex-grow-1">
+                        <v-list-item-title class="text-subtitle-1 font-weight-medium mb-1">
+                          {{ recipe.recipe_name }}
+                        </v-list-item-title>
 
-                      <div class="recipe-details">
-                        <div v-if="recipe.description" class="description text-body-2 mb-2">
-                          {{ recipe.description }}
+                        <div class="recipe-details">
+                          <div v-if="recipe.description" class="description mb-1">
+                            {{ recipe.description }}
+                          </div>
+                          <div class="recipe-meta d-flex flex-wrap gap-2">
+                          <div class="d-flex flex-column">
+                            <div class="d-flex gap-2">
+                              <v-chip
+                                v-if="recipe.cooking_time"
+                                size="x-small"
+                                variant="outlined"
+                                density="compact"
+                              >
+                                <v-icon size="14" class="mr-1">mdi-clock-outline</v-icon>
+                                {{ recipe.cooking_time }}分钟
+                              </v-chip>
+                              <v-chip
+                                v-if="recipe.difficulty"
+                                size="x-small"
+                                variant="outlined"
+                                density="compact"
+                              >
+                                <v-icon size="14" class="mr-1">mdi-gauge</v-icon>
+                                {{ recipe.difficulty }}
+                              </v-chip>
+                            </div>
+                            <v-chip
+                              v-if="recipe.tags && recipe.tags.length"
+                              size="x-small"
+                              variant="outlined"
+                              density="compact"
+                              class="mt-2"
+                            >
+                              <v-icon size="14" class="mr-1">mdi-tag-outline</v-icon>
+                              {{ recipe.tags.join(', ') }}
+                            </v-chip>
+                          </div>
+                          </div>
                         </div>
-                        <div class="recipe-meta d-flex flex-wrap gap-2">
-                          <v-chip
-                            v-if="recipe.cooking_time"
-                            size="small"
-                            variant="outlined"
-                            prepend-icon="mdi-clock-outline"
-                          >
-                            {{ recipe.cooking_time }}分钟
-                          </v-chip>
-                          <v-chip
-                            v-if="recipe.difficulty"
-                            size="small"
-                            variant="outlined"
-                            prepend-icon="mdi-gauge"
-                          >
-                            {{ recipe.difficulty }}
-                          </v-chip>
-                          <v-chip
-                            v-if="recipe.tags && recipe.tags.length"
-                            size="small"
-                            variant="outlined"
-                            prepend-icon="mdi-tag-outline"
-                          >
-                            {{ recipe.tags.join(', ') }}
-                          </v-chip>
-                        </div>
+                      </div>
+
+                      <div class="recipe-ingredients">
+                        <v-chip
+                          v-if="getMainIngredients(recipe)"
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                          density="comfortable"
+                          class="ingredients-chip"
+                        >
+                          <template v-slot:prepend>
+                            <v-icon size="16">mdi-food-variant</v-icon>
+                          </template>
+                          <div class="ingredients-text">
+                            {{ getMainIngredients(recipe) }}
+                          </div>
+                        </v-chip>
                       </div>
                     </div>
                   </v-list-item>
@@ -170,6 +198,29 @@ const props = defineProps({
 // Default image placeholder
 const defaultImage = 'https://via.placeholder.com/150/E0E0E0/BDBDBD?text=No+Image';
 
+// Helper function to create image source from Base64 data or fallback
+const getImageSrc = (imageData) => {
+  if (imageData) {
+    // Assuming JPEG format based on backend logic, adjust if needed (e.g., image/png)
+    return `data:image/jpeg;base64,${imageData}`;
+  }
+  return defaultImage;
+};
+
+// Helper function to get and format main ingredients
+const getMainIngredients = (recipe) => {
+  if (!recipe.ingredients) return '';
+  try {
+    const ingredients = JSON.parse(recipe.ingredients);
+    // 最多显示前3个食材，用逗号分隔
+    return ingredients.slice(0, 6).map(ing => ing.name).join('，');
+  } catch (e) {
+    console.error('解析食材数据失败:', e);
+    return '';
+  }
+};
+
+
 // Get state from store
 const isLoading = computed(() => todayMenuStore.loadingStatus);
 const errorMessage = computed(() => todayMenuStore.errorMessage);
@@ -190,7 +241,7 @@ const formattedDate = computed(() => {
 // Group menu items by meal type
 const groupedMenuItems = computed(() => {
   const groups = {};
-  const mealTypeOrder = ['早餐', '午餐', '晚餐', '小食', '未分类'];
+  const mealTypeOrder = ['早餐', '午餐', '小吃', '晚餐', '夜宵', '其他'];
   
   // Initialize groups with preferred order
   mealTypeOrder.forEach(type => {
@@ -199,7 +250,7 @@ const groupedMenuItems = computed(() => {
 
   // Group items
   historicalMenuItems.value.forEach(item => {
-    const type = item.meal_type || '未分类';
+    const type = item.meal_type || '其他';
     if (!groups[type]) {
       groups[type] = [];
     }
@@ -243,8 +294,9 @@ function getMealTypeColor(mealType) {
   const colorMap = {
     '早餐': 'orange',
     '午餐': 'green',
+    '小吃': 'red',
     '晚餐': 'blue',
-    '小食': 'purple'
+    '夜宵': 'purple'
   };
   return colorMap[mealType] || 'grey';
 }

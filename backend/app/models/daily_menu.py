@@ -9,7 +9,8 @@ from datetime import date
 # Assuming get_db and close_db are managed in recipe.py or a shared db module
 # If they are specific to recipe.py, we might need to import them or redefine them here.
 # For now, assume they are accessible via g and current_app context.
-from .recipe import get_db, recipe_to_dict # Import get_db and recipe_to_dict
+from .recipe import get_db # Import get_db only if recipe_to_dict is not needed elsewhere here
+import base64 # Needed for encoding image data
 
 def daily_menu_to_dict(row):
     """Converts a sqlite3.Row object for a daily_menu into a dictionary."""
@@ -39,14 +40,25 @@ def get_menu_versions_by_date(date_str):
     return [daily_menu_to_dict(row) for row in versions]
 
 def get_menu_details(menu_id):
-    """Retrieves all recipes and their meal types for a specific daily_menu_id."""
+    """Retrieves all recipes and their meal types for a specific daily_menu_id, including the primary image data."""
     db = get_db()
-    # Join with recipes table to get recipe details like name
     cursor = db.execute(
         """
         SELECT
             dmr.id, dmr.daily_menu_id, dmr.recipe_id, dmr.meal_type,
-            r.name as recipe_name, r.description as recipe_description, r.image_url as recipe_image_url
+            r.name as recipe_name,
+            r.description as recipe_description,
+            r.ingredients,
+            r.cook_time_minutes,
+            r.difficulty,
+            r.tags,
+            -- Subquery to get the first image data for the recipe
+            (SELECT ri.image_data
+             FROM recipe_images ri
+             WHERE ri.recipe_id = r.id
+             ORDER BY ri.id ASC -- Or order by is_primary DESC, id ASC if you have a primary flag
+             LIMIT 1
+            ) as recipe_image_data
         FROM daily_menu_recipes dmr
         JOIN recipes r ON dmr.recipe_id = r.id
         WHERE dmr.daily_menu_id = ?
@@ -55,10 +67,40 @@ def get_menu_details(menu_id):
         (menu_id,)
     )
     recipes = cursor.fetchall()
-    # We might want a more structured dict here, maybe group by recipe?
-    # For now, return list of recipe entries in the menu.
-    # Use recipe_to_dict logic if more recipe fields are needed and parsed correctly
-    return [dict(row) for row in recipes] # Simple dict conversion for now
+
+    # Convert rows to dictionaries, handling potential None for image data
+    result_list = []
+    for row in recipes:
+        recipe_dict = dict(row)
+        # Ensure image data is properly handled (e.g., if it's None or needs encoding)
+        # Assuming image_data is stored as BLOB and needs Base64 encoding for JSON/frontend
+        if recipe_dict.get('recipe_image_data'):
+             # If image_data is BLOB, encode it to Base64 string
+             # import base64 # Moved import to top level
+             recipe_dict['recipe_image_data'] = base64.b64encode(recipe_dict['recipe_image_data']).decode('utf-8')
+        else:
+             recipe_dict['recipe_image_data'] = None # Explicitly set to None if no image found
+
+        # Convert tags string back to list if stored as JSON string or comma-separated
+        if recipe_dict.get('tags') and isinstance(recipe_dict['tags'], str):
+            try:
+                # Assuming tags are stored as a JSON string in the DB
+                tags_list = json.loads(recipe_dict['tags'])
+                # Further check if it's actually a list after loading
+                recipe_dict['tags'] = tags_list if isinstance(tags_list, list) else recipe_dict['tags'].split(',')
+            except json.JSONDecodeError:
+                 # Fallback if it's not JSON, try splitting by comma
+                 recipe_dict['tags'] = [tag.strip() for tag in recipe_dict['tags'].split(',') if tag.strip()]
+            except Exception:
+                 # Fallback for any other error
+                 recipe_dict['tags'] = []
+        elif not recipe_dict.get('tags'):
+             recipe_dict['tags'] = []
+
+
+        result_list.append(recipe_dict)
+
+    return result_list
 
 def get_latest_menu_by_date(date_str):
     """Retrieves the details of the latest menu version for a specific date."""
