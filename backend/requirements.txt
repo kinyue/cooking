@@ -4,6 +4,7 @@
 Flask>=2.0 # Core web framework
 Flask-CORS>=3.0 # For handling Cross-Origin Resource Sharing
 python-dotenv>=0.15 # Optional: for loading .env files
+gunicorn>=20.0 # WSGI HTTP Server for UNIX
 
 # Testing dependencies
 pytest>=6.0 # Testing framework
