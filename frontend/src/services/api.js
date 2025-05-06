@@ -119,6 +119,18 @@ const getRecipeImage = async (recipeId) => {
   }
 };
 
+// Function to download the database file
+const downloadDatabase = async () => {
+  try {
+    const response = await api.get('/download-database', { responseType: 'blob' });
+    return response.data; // Return the blob data
+  } catch (error) {
+    console.error('API Error downloading database:', error);
+    throw error; // Re-throw the error
+  }
+};
+
+
 // --- Daily Menu API Calls ---
 
 /**
@@ -207,6 +219,7 @@ const fetchDatesWithMenusInMonth = async (year, month) => {
 };
 
 
+
 export {
   getRecipes,
   getRecipeById,
@@ -220,7 +233,8 @@ export {
   fetchDatesWithMenus,
   saveDailyMenu,
   fetchMenuById,
-  fetchDatesWithMenusInMonth, // Add the new function
+  fetchDatesWithMenusInMonth,
+  downloadDatabase, // Export the new function
 };
 
 export default {
@@ -236,5 +250,6 @@ export default {
   fetchDatesWithMenus,
   saveDailyMenu,
   fetchMenuById,
-  fetchDatesWithMenusInMonth, // Add the new function
+  fetchDatesWithMenusInMonth,
+  downloadDatabase,
 };

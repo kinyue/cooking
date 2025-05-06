@@ -10,6 +10,7 @@ from .config import config_by_name
 from .models import recipe as db_recipe # Alias to avoid naming conflict
 from .routes import recipes
 from .routes import daily_menus # Import the new daily_menus blueprint
+from .routes import utils # Import the new utils blueprint
 # Import all CLI commands from the cli_commands module
 from .scripts.cli_commands import init_db_command, seed_recipes_command, seed_images_command
 
@@ -50,6 +51,7 @@ def create_app(config_name=None):
     # Register blueprints
     app.register_blueprint(recipes.bp)
     app.register_blueprint(daily_menus.bp)
+    app.register_blueprint(utils.bp) # Register the new utils blueprint
 
     # Register CLI commands
     app.cli.add_command(init_db_command)

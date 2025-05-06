@@ -1,6 +1,6 @@
 <template>
   <v-app-bar app color="surface" flat class="app-header">
-    <router-link to="/" class="d-flex align-center text-decoration-none">
+    <router-link to="/" class="d-flex align-center text-decoration-none" @click.prevent="handleLogoClick">
       <v-img
         src="@/assets/logo.png"
         max-height="48"
@@ -175,6 +175,7 @@ import RecipeForm from '@/components/RecipeForm.vue';
 import FilterDrawer from '@/components/FilterDrawer.vue';
 import { useRouter } from 'vue-router';
 import { useRecipeSubmit } from '@/composables/useRecipeSubmit';
+import { downloadDatabase as downloadDatabaseApi } from '@/services/api'; // Import the specific function and rename it
 
 const todayMenu = useTodayMenuStore();
 const showMenuDialog = ref(false);
@@ -183,6 +184,52 @@ const isRandomRecipeDialogOpen = ref(false);
 const showFilterDrawer = ref(false);
 const router = useRouter();
 const datePickerRef = ref(null); // Ref for the date picker
+
+// --- Logo Click State ---
+const clickCount = ref(0);
+const lastClickTime = ref(0);
+
+// --- Logo Click Handler ---
+const handleLogoClick = () => {
+  const currentTime = new Date().getTime();
+  const timeDiff = currentTime - lastClickTime.value;
+
+  if (timeDiff < 300) { // Within 300ms, consider it a consecutive click
+    clickCount.value++;
+    if (clickCount.value === 3) {
+      console.log('Triple click detected! Initiating database download.');
+      downloadDatabase();
+      clickCount.value = 0; // Reset after triggering download
+    }
+  } else {
+    clickCount.value = 1; // Not consecutive, start new count
+  }
+  lastClickTime.value = currentTime;
+
+  // Also perform the default router-link navigation if it's not a triple click
+  if (clickCount.value !== 3) {
+    router.push('/');
+  }
+};
+
+// --- Database Download Logic ---
+const downloadDatabase = async () => {
+  try {
+    const blob = await downloadDatabaseApi(); // Call the imported API function
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = 'database_backup.db';
+    link.click();
+    window.URL.revokeObjectURL(link.href);
+    snackbar.value = { show: true, text: '数据库下载成功！', color: 'success', timeout: 3000 };
+  } catch (error) {
+    console.error('Failed to download database:', error);
+    snackbar.value = { show: true, text: '数据库下载失败', color: 'error', timeout: 5000 };
+  }
+};
+
+
+// --- Calendar Dialog State & Logic ---
 
 // --- Calendar Dialog State & Logic ---
 const showCalendarDialog = ref(false);
