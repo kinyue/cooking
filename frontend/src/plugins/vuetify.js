@@ -23,6 +23,13 @@ const myCustomLightTheme = {
     info: '#2196F3',
     success: '#4CAF50',    // Can be the same as primary or different green
     warning: '#FB8C00',
+    
+    // Add custom colors for recipe tags
+    green: '#4CAF50',      // Green for tags like '简单', '清淡'
+    blue: '#2196F3',       // Blue for tags like '中等', '家常菜', '咸鲜', '酸甜', '烘培', '西餐'
+    orange: '#FF9800',     // Orange for tags like '困难', '川菜', '湘菜', '闽菜'
+    red: '#F44336',        // Red for tags like '麻辣', '香辣', '热菜'
+    
     // Define text colors if needed, often inferred correctly
     // 'on-background': '#333333',
     // 'on-surface': '#333333',

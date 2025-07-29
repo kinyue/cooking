@@ -66,12 +66,12 @@
 
             <!-- Tags -->
             <v-chip-group class="mt-6">
-              <v-chip 
-                v-for="tag in recipe.tags" 
-                :key="tag" 
-                label 
-                color="primary" 
-                variant="flat" 
+              <v-chip
+                v-for="tag in recipe.tags"
+                :key="tag"
+                label
+                :color="getTagColor(tag)"
+                variant="flat"
                 class="ma-1"
                 @click.stop="handleTagClick(tag)"
                 style="cursor: pointer;"
@@ -248,8 +248,27 @@ export default {
         this.imageSrc = 'https://via.placeholder.com/800x400/E0E0E0/BDBDBD?text=Loading+Image...'; // Reset placeholder
         try {
           // Fetch recipe details
-          const response = await getRecipeById(this.id); 
+          console.log('=== FETCHING RECIPE DETAILS ===');
+          console.log('Recipe ID:', this.id);
+          
+          const response = await getRecipeById(this.id);
+          console.log('API Response:', response);
+          console.log('Recipe data:', response.data);
+          
           this.recipe = response.data;
+          
+          console.log('Recipe assigned to component:', this.recipe);
+          console.log('Recipe tags:', this.recipe?.tags);
+          console.log('Recipe tags type:', typeof this.recipe?.tags);
+          console.log('Recipe tags length:', this.recipe?.tags?.length);
+          
+          if (this.recipe?.tags) {
+            console.log('Individual tags:');
+            this.recipe.tags.forEach((tag, index) => {
+              console.log(`Tag ${index}:`, tag, `(type: ${typeof tag})`);
+            });
+          }
+          console.log('=== END RECIPE FETCH DEBUG ===');
 
           // Fetch image after getting recipe details
           if (this.recipe) {
@@ -330,6 +349,53 @@ export default {
     handleTagClick(tag) {
       // Navigate back to home view and apply the filter
       this.router.push({ name: 'home', query: { tags: tag } });
+    },
+    // Method to get color for a tag - matching implementation from RecipeCard.vue
+    getTagColor(tag) {
+      console.log('=== TAG COLOR DEBUG ===');
+      console.log('Input tag:', tag);
+      console.log('Tag type:', typeof tag);
+      console.log('Tag length:', tag ? tag.length : 'undefined');
+      console.log('Recipe tags array:', this.recipe?.tags);
+      console.log('Recipe tags type:', typeof this.recipe?.tags);
+      
+      // Check if tag is valid
+      if (!tag || typeof tag !== 'string') {
+        console.log('❌ Invalid tag - not a string or empty:', tag);
+        return 'grey';
+      }
+      
+      // Trim whitespace and check again
+      const cleanTag = tag.trim();
+      console.log('Cleaned tag:', cleanTag);
+      
+      // Assign colors based on tag categories
+      if (['简单', '清淡'].includes(cleanTag)) {
+        console.log('✅ Tag matched GREEN category:', cleanTag);
+        return 'green';
+      }
+      if (['中等', '家常菜', '咸鲜', '酸甜', '烘培', '西餐'].includes(cleanTag)) {
+        console.log('✅ Tag matched BLUE category:', cleanTag);
+        return 'blue';
+      }
+      if (['困难', '川菜', '湘菜', '闽菜'].includes(cleanTag)) {
+        console.log('✅ Tag matched ORANGE category:', cleanTag);
+        return 'orange';
+      }
+      if (['麻辣', '香辣', '热菜'].includes(cleanTag)) {
+        console.log('✅ Tag matched RED category:', cleanTag);
+        return 'red';
+      }
+      
+      console.log('⚠️ Tag using default color - no category match:', cleanTag);
+      console.log('Available categories:');
+      console.log('- Green: 简单, 清淡');
+      console.log('- Blue: 中等, 家常菜, 咸鲜, 酸甜, 烘培, 西餐');
+      console.log('- Orange: 困难, 川菜, 湘菜, 闽菜');
+      console.log('- Red: 麻辣, 香辣, 热菜');
+      console.log('=== END TAG COLOR DEBUG ===');
+      
+      return 'primary'; // Using 'primary' instead of 'grey' to test if color binding works
     },
   },
 };

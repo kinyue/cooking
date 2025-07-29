@@ -22,6 +22,16 @@ class Config:
     # Disable SQLAlchemy event system if not using SQLAlchemy, saves resources
     SQLALCHEMY_TRACK_MODIFICATIONS = False # Relevant if using Flask-SQLAlchemy
 
+    # Security settings
+    # Allow only local access to secure endpoints by default
+    SECURE_API_LOCAL_ONLY = True
+    
+    # Default token expiration time in hours
+    DEFAULT_TOKEN_EXPIRATION = 24
+    
+    # Maximum token expiration time in hours (30 days)
+    MAX_TOKEN_EXPIRATION = 720
+
     # Other potential configurations
     DEBUG = False # Set to True for development debugging (use FLASK_ENV=development instead)
     TESTING = False
