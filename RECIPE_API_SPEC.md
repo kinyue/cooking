@@ -381,6 +381,8 @@ Host: localhost (required)
 
 ## Image Upload
 
+*Note:* This endpoint is used to upload or update an image for an existing recipe. It is typically called after creating a recipe (using the ID returned from the creation endpoint) or when updating an image for an existing recipe. If an uploaded image is set as primary, any existing primary image for that recipe will be automatically demoted to non-primary.
+
 ### Regular Endpoint
 ```http
 POST /api/recipes/{id}/image
