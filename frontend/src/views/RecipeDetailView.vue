@@ -216,7 +216,7 @@ export default {
       recipe: null,
       loading: false,
       error: null,
-      imageSrc: 'https://via.placeholder.com/800x400/E0E0E0/BDBDBD?text=Loading+Image...', // Placeholder while loading
+      imageSrc: require('@/assets/recipe_default_image.png'), // Placeholder while loading
       dialog: {
         show: false,
         loading: false
@@ -245,7 +245,7 @@ export default {
       async fetchRecipeDetails() {
         this.loading = true;
         this.error = null;
-        this.imageSrc = 'https://via.placeholder.com/800x400/E0E0E0/BDBDBD?text=Loading+Image...'; // Reset placeholder
+        this.imageSrc = require('@/assets/recipe_default_image.png'); // Reset placeholder
         try {
           // Fetch recipe details
           console.log('=== FETCHING RECIPE DETAILS ===');
@@ -277,13 +277,13 @@ export default {
               this.imageSrc = imageUrl;
             } catch (imgError) {
               console.error(`Failed to load image for recipe ${this.id}:`, imgError);
-              this.imageSrc = 'https://via.placeholder.com/800x400/E0E0E0/BDBDBD?text=No+Image'; // Fallback image
+              this.imageSrc = require('@/assets/recipe_default_image.png'); // Fallback image
             }
           }
         } catch (error) {
           console.error('Failed to fetch recipe details:', error);
           this.error = error;
-          this.imageSrc = 'https://via.placeholder.com/800x400/E0E0E0/BDBDBD?text=Error'; // Error placeholder
+          this.imageSrc = require('@/assets/recipe_default_image.png'); // Error placeholder
         } finally {
           this.loading = false;
         }
@@ -386,15 +386,7 @@ export default {
         console.log('✅ Tag matched RED category:', cleanTag);
         return 'red';
       }
-      
-      console.log('⚠️ Tag using default color - no category match:', cleanTag);
-      console.log('Available categories:');
-      console.log('- Green: 简单, 清淡');
-      console.log('- Blue: 中等, 家常菜, 咸鲜, 酸甜, 烘培, 西餐');
-      console.log('- Orange: 困难, 川菜, 湘菜, 闽菜');
-      console.log('- Red: 麻辣, 香辣, 热菜');
-      console.log('=== END TAG COLOR DEBUG ===');
-      
+
       return 'primary'; // Using 'primary' instead of 'grey' to test if color binding works
     },
   },

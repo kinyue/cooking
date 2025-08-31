@@ -78,7 +78,7 @@ const props = defineProps({
   },
 });
 
-const imageSrc = ref('https://via.placeholder.com/300x200/E0E0E0/BDBDBD?text=No+Image');
+const imageSrc = ref(require('@/assets/recipe_default_image.png'));
 
 onMounted(async () => {
   try {

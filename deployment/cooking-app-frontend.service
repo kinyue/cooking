@@ -1,0 +1,17 @@
+[Unit]
+Description=Cooking App Frontend Service
+After=network.target cooking-app-backend.service
+
+[Service]
+Type=simple
+User=lance
+Group=lance
+WorkingDirectory=/opt/cooking-app/frontend
+ExecStart=/usr/bin/python3 -m http.server 58080 --directory /opt/cooking-app/frontend/dist --bind 0.0.0.0
+Restart=always
+RestartSec=10
+StandardOutput=file:/var/log/cooking-app/frontend.log
+StandardError=file:/var/log/cooking-app/frontend-error.log
+
+[Install]
+WantedBy=multi-user.target

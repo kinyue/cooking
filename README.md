@@ -59,7 +59,7 @@ This project contains a frontend Vue application and a backend Flask API.
     ```bash
     npm run serve
     ```
-    The frontend application will be running at `http://localhost:8080/`.
+    The frontend application will be running at `http://localhost:58080/`.
 
 ## Secure API Endpoints
 

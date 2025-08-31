@@ -206,7 +206,7 @@ const props = defineProps({
 });
 
 // Default image placeholder
-const defaultImage = 'https://via.placeholder.com/150/E0E0E0/BDBDBD?text=No+Image';
+const defaultImage = require('@/assets/recipe_default_image.png');
 
 // Helper function to create image source from Base64 data or fallback
 const getImageSrc = (imageData) => {

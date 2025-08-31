@@ -115,7 +115,8 @@ const getRecipeImage = async (recipeId) => {
     return URL.createObjectURL(response.data);
   } catch (error) {
     console.error(`API Error fetching image for recipe ${recipeId}:`, error);
-    throw error; // Re-throw the error
+    // Return default image instead of throwing error
+    return require('@/assets/recipe_default_image.png');
   }
 };
 

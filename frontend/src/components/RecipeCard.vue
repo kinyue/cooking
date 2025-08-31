@@ -89,7 +89,7 @@ import DeleteConfirmation from '@/components/DeleteConfirmation.vue'; // Import 
 // --- State ---
 const showDeleteDialog = ref(false);
 const isDeleting = ref(false);
-const imageSrc = ref('https://via.placeholder.com/300x200/E0E0E0/BDBDBD?text=No+Image');
+const imageSrc = ref(require('@/assets/recipe_default_image.png'));
 
 const props = defineProps({
   recipe: {

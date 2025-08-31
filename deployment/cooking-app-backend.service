@@ -1,0 +1,19 @@
+[Unit]
+Description=Cooking App Backend Service
+After=network.target
+
+[Service]
+Type=simple
+User=lance
+Group=lance
+WorkingDirectory=/opt/cooking-app/backend
+Environment=FLASK_ENV=production
+Environment=FLASK_APP=app
+ExecStart=/opt/cooking-app/venv/bin/gunicorn --bind 0.0.0.0:5000 --workers 3 --timeout 120 --chdir /opt/cooking-app/backend wsgi:app
+Restart=always
+RestartSec=10
+StandardOutput=file:/var/log/cooking-app/backend.log
+StandardError=file:/var/log/cooking-app/backend-error.log
+
+[Install]
+WantedBy=multi-user.target
